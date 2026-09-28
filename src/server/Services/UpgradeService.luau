@@ -64,6 +64,8 @@ function UpgradeService.start()
 		if result == "ok" and cost then
 			services.PlayerDataService.addCoins(player, -cost)
 			levels[track] += 1
+			services.AnalyticsService.economy(player, "Sink", cost, profile.coins, `Upgrade_{track}_{levels[track]}`)
+			services.AnalyticsService.onboardingStep(player, "FirstUpgrade")
 			local name = Gear.Tracks[track].displayName
 			notifyRemote:FireClient(player, `{name} upgraded to level {levels[track]}. Active on your next dive.`)
 		elseif result == "not_enough_coins" then

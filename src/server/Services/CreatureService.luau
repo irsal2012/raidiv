@@ -133,7 +133,7 @@ local function think(creature: Creature)
 		creature.lastKnown = targetRoot.Position
 		creature.searchUntil = nil
 		if (targetRoot.Position - creature.part.Position).Magnitude <= config.catchRange then
-			targetHumanoid.Health = 0
+			services.DiveService.kill(target, "creature")
 			startReturn(creature)
 		end
 	else

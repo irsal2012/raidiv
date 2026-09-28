@@ -31,6 +31,7 @@ local TEMPLATE: Types.Profile = {
 	cosmetics = { owned = {}, equipped = {} },
 	purchases = {},
 	stats = { dives = 0, extractions = 0, deaths = 0 },
+	onboarding = {},
 }
 
 -- MIGRATIONS[n] upgrades saved data from version n to n + 1. Add one whenever the
@@ -39,6 +40,7 @@ local MIGRATIONS: { [number]: (data: any) -> () } = {}
 
 local PlayerDataService = {}
 
+local services: any
 local store = ProfileStore.New(STORE_NAME, TEMPLATE)
 local profiles: { [Player]: any } = {}
 
@@ -89,6 +91,7 @@ local function onPlayerAdded(player: Player)
 
 	profiles[player] = profile
 	createLeaderstats(player, profile.Data.coins)
+	services.AnalyticsService.onboardingStep(player, "Joined")
 end
 
 function PlayerDataService.get(player: Player): Types.Profile?
@@ -107,6 +110,10 @@ function PlayerDataService.addCoins(player: Player, amount: number)
 	if coins then
 		coins.Value = profile.Data.coins
 	end
+end
+
+function PlayerDataService.init(allServices: any)
+	services = allServices
 end
 
 function PlayerDataService.start()

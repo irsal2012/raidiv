@@ -74,6 +74,8 @@ Goal: grey-box proof that the "one more relic" tension works. No art, no saving.
 
 **Saving (pulled forward from Phase 2):** `PlayerDataService` now uses **ProfileStore**, vendored from the official MadStudioRoblox repo at commit `45c9847` into `src/server/Vendor/` (license in `licenses/`). Wally only had third-party forks. Profiles are session-locked, versioned (`MIGRATIONS` table), GDPR-tagged with `AddUserId`, and reconciled against the template on load. The place is published (private) with Studio API access on.
 
+**Analytics (pulled forward from Phase 2, for the playtest):** `AnalyticsService` wraps Roblox's AnalyticsService (pcall-guarded). It logs an onboarding funnel (Joined → FirstDive → FirstRelic → FirstExtraction → FirstSale → FirstUpgrade), each step once per player ever via `profile.onboarding`. Per dive it logs `DiveEnded` (seconds), `DiveLoot` (Coins carried) and `DiveDeath` (cause: oxygen / creature / other). Coin sources (selling) and sinks (upgrades) are economy events. Roblox ignores Studio sessions, so data comes only from the published game; view it in Creator Hub → Analytics. Not yet logged: squad size per dive (no squads yet) and shop views.
+
 Tuning lives in `Config/Oxygen`, `Config/Swim`, `Config/Creatures`, `Config/Gear`, `Config/Relics`. A test locks in the core chase rule: an unloaded starter diver outruns the Drifter only by sprinting.
 
 **To playtest:** `rojo serve`, connect Studio to an empty Baseplate place, press Play. Controls: DIVE button, Shift = sprint, F = lamp (touch buttons on mobile). For the squad test, use Test → Clients and Servers with 2–4 players.

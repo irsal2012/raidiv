@@ -21,6 +21,7 @@ export type Profile = {
 	cosmetics: { owned: { [string]: boolean }, equipped: { [string]: string } },
 	purchases: { [string]: boolean }, -- processed receipt IDs
 	stats: { dives: number, extractions: number, deaths: number },
+	onboarding: { [string]: boolean }, -- onboarding funnel steps already logged
 }
 
 -- Server -> client every dive tick.

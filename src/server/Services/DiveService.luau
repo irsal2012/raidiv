@@ -14,6 +14,7 @@ local Gear = require(Shared.Config.Gear)
 local OxygenConfig = require(Shared.Config.Oxygen)
 local Relics = require(Shared.Config.Relics)
 local SwimConfig = require(Shared.Config.Swim)
+local Loot = require(Shared.Logic.Loot)
 local OxygenMath = require(Shared.Logic.OxygenMath)
 local SwimMath = require(Shared.Logic.SwimMath)
 local Remotes = require(Shared.Net.Remotes)
@@ -31,6 +32,10 @@ export type Session = {
 	carried: { Types.RelicInstance },
 	weight: number,
 	capacity: number,
+	-- Analytics
+	startedAt: number,
+	carriedValue: number, -- sell value picked up this dive; kept after a death drop
+	deathCause: string?,
 }
 
 local DiveService = {}
@@ -93,9 +98,12 @@ local function startDive(player: Player)
 		carried = {},
 		weight = 0,
 		capacity = Gear.valueAt("bag", profile.gear.bag) or 0,
+		startedAt = os.clock(),
+		carriedValue = 0,
 	}
 	sessions[player] = session
 	profile.stats.dives += 1
+	services.AnalyticsService.onboardingStep(player, "FirstDive")
 
 	local character = player.Character
 	local head = character and character:FindFirstChild("Head")
@@ -130,7 +138,9 @@ function DiveService.addCarried(player: Player, relic: Types.RelicInstance): boo
 	relic.obtainedAt = os.time()
 	table.insert(session.carried, relic)
 	session.weight += weight
+	session.carriedValue += Loot.sellValue(Relics, relic.relicKey, relic.mutation)
 	sendState(player, session)
+	services.AnalyticsService.onboardingStep(player, "FirstRelic")
 	return true
 end
 
@@ -140,6 +150,13 @@ function DiveService.endDive(player: Player, reason: "extracted" | "died" | "lef
 		return
 	end
 	sessions[player] = nil
+	services.AnalyticsService.diveEnded(
+		player,
+		reason,
+		os.clock() - session.startedAt,
+		session.carriedValue,
+		session.deathCause
+	)
 
 	local profile = services.PlayerDataService.get(player)
 	if profile and reason == "extracted" then
@@ -148,6 +165,7 @@ function DiveService.endDive(player: Player, reason: "extracted" | "died" | "lef
 			profile.collection[relic.relicKey] = true
 		end
 		profile.stats.extractions += 1
+		services.AnalyticsService.onboardingStep(player, "FirstExtraction")
 		local count = #session.carried
 		notifyRemote:FireClient(
 			player,
@@ -168,6 +186,16 @@ function DiveService.endDive(player: Player, reason: "extracted" | "died" | "lef
 			humanoid.WalkSpeed = SwimConfig.SurfaceWalkSpeed
 		end
 		sendState(player, nil)
+	end
+end
+
+-- Kills a diving player and records why, for analytics. Use instead of setting Health directly.
+function DiveService.kill(player: Player, cause: "oxygen" | "creature")
+	local session = sessions[player]
+	local _, humanoid = getBody(player)
+	if session and humanoid and humanoid.Health > 0 then
+		session.deathCause = cause
+		humanoid.Health = 0
 	end
 end
 
@@ -209,7 +237,7 @@ local function tick(dt: number)
 			services.CreatureService.emitNoise(root.Position, SwimConfig.SprintNoiseRadius)
 		end
 		if session.oxygen <= 0 then
-			humanoid.Health = 0
+			DiveService.kill(player, "oxygen")
 		end
 		sendState(player, session)
 	end

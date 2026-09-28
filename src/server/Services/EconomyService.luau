@@ -36,6 +36,8 @@ local function sellAll(player: Player, counter: BasePart)
 	local count = #profile.inventory
 	table.clear(profile.inventory)
 	services.PlayerDataService.addCoins(player, total)
+	services.AnalyticsService.economy(player, "Source", total, profile.coins, "SellRelics")
+	services.AnalyticsService.onboardingStep(player, "FirstSale")
 	notifyRemote:FireClient(player, `Sold {count} relic(s) for {total} Coins`)
 end
 
