@@ -11,6 +11,7 @@ jobs:
       - run: lune run tests/run
       - name: Type check
         run: |
+          wally install
           rojo sourcemap default.project.json -o sourcemap.json
           curl -sSfL -o roblox.d.luau https://raw.githubusercontent.com/JohnnyMorganz/luau-lsp/1.38.1/scripts/globalTypes.d.luau
           luau-lsp analyze --sourcemap=sourcemap.json --definitions=roblox.d.luau src
