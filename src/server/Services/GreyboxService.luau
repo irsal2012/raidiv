@@ -258,12 +258,15 @@ function GreyboxService.init()
 		Vector3.new(SHAFT, GreyboxService.SurfaceY - shaftBottom, SHAFT),
 		Enum.Material.Water
 	)
-	terrain.WaterColor = Color3.fromRGB(20, 60, 70)
+	terrain.WaterColor = Color3.fromRGB(30, 95, 105)
+	terrain.WaterTransparency = 0.5
 
-	-- Dark enough that the lamp matters.
-	Lighting.ClockTime = 18.5
-	Lighting.Ambient = Color3.fromRGB(10, 14, 18)
-	Lighting.OutdoorAmbient = Color3.fromRGB(40, 50, 60)
+	-- Bright surface; dim rooms you can navigate without the lamp, but where the lamp
+	-- still helps you spot relics. Ambient drives indoor light, OutdoorAmbient the surface.
+	Lighting.ClockTime = 14
+	Lighting.Brightness = 2
+	Lighting.Ambient = Color3.fromRGB(70, 80, 90)
+	Lighting.OutdoorAmbient = Color3.fromRGB(120, 130, 140)
 end
 
 return GreyboxService
