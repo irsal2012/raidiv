@@ -1,0 +1,31 @@
+# Build output
+/build
+*.rbxl
+*.rbxlx
+*.rbxl.lock
+*.rbxlx.lock
+
+# Wally packages (restored with `wally install`)
+/Packages
+/ServerPackages
+/DevPackages
+
+# Generated for luau-lsp (recreate with `rojo sourcemap` / CI download)
+/sourcemap.json
+/roblox.d.luau
+
+# Secrets (Open Cloud API keys belong in GitHub Secrets)
+.env
+.env.*
+*.key
+
+# Editors: keep shared VS Code settings, ignore personal state
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+.idea/
+
+# OS / logs
+.DS_Store
+Thumbs.db
+*.log

@@ -1,0 +1,16 @@
+name: CI
+on: [push, pull_request]
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: CompeyDev/setup-rokit@v0.1.2
+      - run: stylua --check src tests
+      - run: selene src
+      - run: lune run tests/run
+      - name: Type check
+        run: |
+          rojo sourcemap default.project.json -o sourcemap.json
+          curl -sSfL -o roblox.d.luau https://raw.githubusercontent.com/JohnnyMorganz/luau-lsp/1.38.1/scripts/globalTypes.d.luau
+          luau-lsp analyze --sourcemap=sourcemap.json --definitions=roblox.d.luau src

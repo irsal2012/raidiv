@@ -1,0 +1,4 @@
+std = "roblox"
+
+[config]
+unused_variable = { ignore_pattern = "^_" }

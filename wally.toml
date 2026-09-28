@@ -1,0 +1,13 @@
+[package]
+name = "raidiv/deep-salvage"
+version = "0.1.0"
+registry = "https://github.com/UpliftGames/wally-index"
+realm = "shared"
+private = true
+
+[dependencies]
+Fusion = "elttob/fusion@0.3.0"
+
+# Phase 2 additions (verify package names/versions on wally.run before adding):
+# ProfileStore — loleris; may need to be vendored into src/server if not on Wally
+# Zap — generates code via CLI rather than a Wally package

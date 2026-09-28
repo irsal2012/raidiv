@@ -1,0 +1,8 @@
+# Pinned toolchain. Versions were current at scaffold time; bump with `rokit add <tool>`.
+[tools]
+rojo = "rojo-rbx/rojo@7.4.4"
+wally = "UpliftGames/wally@0.3.2"
+selene = "Kampfkarren/selene@0.27.1"
+stylua = "JohnnyMorganz/StyLua@2.0.2"
+luau-lsp = "JohnnyMorganz/luau-lsp@1.38.1"
+lune = "lune-org/lune@0.8.9"
