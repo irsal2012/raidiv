@@ -74,6 +74,7 @@ local GreyboxService = {
 	CreatureSpawnRoom = "C",
 	ZoneFolder = nil :: Folder?,
 	SellPrompt = nil :: ProximityPrompt?,
+	UpgradePrompt = nil :: ProximityPrompt?,
 }
 
 function GreyboxService.roomCenter(key: string): Vector3
@@ -223,6 +224,17 @@ local function buildSurface(parent: Instance)
 	prompt.MaxActivationDistance = 10
 	prompt.Parent = counter
 	GreyboxService.SellPrompt = prompt
+
+	local locker = block(parent, CFrame.new(-24, 2, -20), Vector3.new(8, 4, 3))
+	locker.Name = "GearLocker"
+	locker.Color = Color3.fromRGB(60, 120, 200)
+
+	local upgradePrompt = Instance.new("ProximityPrompt")
+	upgradePrompt.ActionText = "Upgrade gear"
+	upgradePrompt.ObjectText = "Gear Locker"
+	upgradePrompt.MaxActivationDistance = 10
+	upgradePrompt.Parent = locker
+	GreyboxService.UpgradePrompt = upgradePrompt
 end
 
 function GreyboxService.init()

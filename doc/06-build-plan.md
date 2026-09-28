@@ -70,6 +70,8 @@ Goal: grey-box proof that the "one more relic" tension works. No art, no saving.
 | 8 | `server/Services/EconomyService.luau`, `PlayerDataService.luau` | Coins show on the leaderboard. **Nothing saves** (Phase 2). |
 | 9 | `shared/Net/Remotes.luau`, `server/Util/RateLimiter.luau` | Token bucket per player per remote; payloads type-checked. |
 
+**Added after the first Studio run (2026-09-28):** lighting brightened (dusk was unreadable), and a **Gear Locker** upgrade station (blue block left of the boat; `UpgradeService`, `UpgradeController`, `Logic/Upgrade.luau`) so Coins buy tank, fins, bag and lamp levels. This gives the playtest its "sell → upgrade → dive again" pull. Sonar and suit are hidden until they do something.
+
 Tuning lives in `Config/Oxygen`, `Config/Swim`, `Config/Creatures`, `Config/Gear`, `Config/Relics`. A test locks in the core chase rule: an unloaded starter diver outruns the Drifter only by sprinting.
 
 **To playtest:** `rojo serve`, connect Studio to an empty Baseplate place, press Play. Controls: DIVE button, Shift = sprint, F = lamp (touch buttons on mobile). For the squad test, use Test → Clients and Servers with 2–4 players.

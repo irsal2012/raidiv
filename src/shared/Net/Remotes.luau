@@ -7,11 +7,15 @@
 --   SetLamp    client -> server  (on: boolean)
 --   DiveState  server -> client  (Types.DiveState)
 --   Notify     server -> client  (message: string)
+--   BuyUpgrade   client -> server  (track: string)
+--   OpenUpgrades server -> client  ()
+--   ProfileState server -> client  (Types.ProfileState)
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
-local NAMES = { "StartDive", "SetSprint", "SetLamp", "DiveState", "Notify" }
+local NAMES =
+	{ "StartDive", "SetSprint", "SetLamp", "DiveState", "Notify", "BuyUpgrade", "OpenUpgrades", "ProfileState" }
 local FOLDER_NAME = "Remotes"
 
 local folder: Instance

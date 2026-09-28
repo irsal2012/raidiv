@@ -33,4 +33,10 @@ export type DiveState = {
 	lampOn: boolean,
 }
 
+-- Server -> client when the upgrade panel opens or after a purchase.
+export type ProfileState = {
+	coins: number,
+	gear: { [string]: number },
+}
+
 return nil

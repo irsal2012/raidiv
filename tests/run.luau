@@ -12,6 +12,7 @@ local Creatures = require("../src/shared/Config/Creatures")
 local Loot = require("../src/shared/Logic/Loot")
 local OxygenMath = require("../src/shared/Logic/OxygenMath")
 local SwimMath = require("../src/shared/Logic/SwimMath")
+local Upgrade = require("../src/shared/Logic/Upgrade")
 
 local passed, failed = 0, 0
 
@@ -144,6 +145,28 @@ end)
 test("lamp range fits SpotLight's 60-stud cap", function()
 	for _, range in Gear.Tracks.lamp.values do
 		assert(range <= 60, `lamp range {range} exceeds 60`)
+	end
+end)
+
+test("upgrade check covers ok, broke, maxed and unknown tracks", function()
+	local levels = { tank = 1, fins = 1, lamp = 1, bag = 1, sonar = 0, suit = 1 }
+	local result, cost = Upgrade.check(Gear, levels, 250, "tank")
+	expectEq(result, "ok")
+	expectEq(cost, 250)
+	result, cost = Upgrade.check(Gear, levels, 249, "tank")
+	expectEq(result, "not_enough_coins")
+	expectEq(cost, 250)
+	expectEq((Upgrade.check(Gear, { tank = Gear.MaxLevel }, 1e9, "tank")), "max_level")
+	-- Not sold yet, and not a track at all.
+	expectEq((Upgrade.check(Gear, levels, 1e9, "sonar")), "unknown_track")
+	expectEq((Upgrade.check(Gear, levels, 1e9, "rocketboots")), "unknown_track")
+end)
+
+test("every shop track has a unit and a full cost ladder", function()
+	for _, key in Gear.Shop do
+		local track = Gear.Tracks[key]
+		assert(track.unit ~= "", `{key} has no unit`)
+		expectEq(#track.costs, Gear.MaxLevel)
 	end
 end)
 
