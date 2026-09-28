@@ -1,4 +1,5 @@
 std = "roblox"
+exclude = ["src/server/Vendor/*"]
 
 [config]
 unused_variable = { ignore_pattern = "^_" }
