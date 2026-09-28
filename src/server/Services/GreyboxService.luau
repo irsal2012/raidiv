@@ -197,6 +197,18 @@ local function buildSurface(parent: Instance)
 		panel(parent, CFrame.lookAt(wallCenter, wallCenter + dir), SHAFT + WALL * 2, shaftHeight, 0, 0)
 	end
 
+	-- Climbable ladder on the boat side of the shaft, rising a little above the ground so
+	-- players can step off. Jumping out of terrain water is unreliable.
+	-- TrussPart sizes snap to multiples of 2, so keep the height even.
+	local ladderTop = GreyboxService.SurfaceY + 4
+	local ladder = Instance.new("TrussPart")
+	ladder.Name = "ExitLadder"
+	ladder.Anchored = true
+	ladder.Size = Vector3.new(2, ladderTop - -shaftHeight, 2)
+	ladder.CFrame = CFrame.new(0, (ladderTop - shaftHeight) / 2, -SHAFT / 2 + 1)
+	ladder.Color = Color3.fromRGB(230, 180, 40)
+	ladder.Parent = parent
+
 	-- Ground with a hole over the shaft. Top face at SurfaceY.
 	panel(parent, CFrame.new(0, GreyboxService.SurfaceY - WALL / 2, 0) * FLAT, 400, 400, SHAFT, SHAFT)
 
