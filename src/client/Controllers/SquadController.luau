@@ -4,6 +4,7 @@
 -- Plain Instances for now; moves to Fusion in the Phase 3 UI pass.
 
 local Players = game:GetService("Players")
+local SocialService = game:GetService("SocialService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
@@ -85,7 +86,7 @@ function SquadController.start()
 	memberList.TextStrokeTransparency = 0.4
 
 	-- Panel.
-	local panel = frame(gui, UDim2.fromScale(0.5, 0.5), UDim2.fromOffset(360, 320))
+	local panel = frame(gui, UDim2.fromScale(0.5, 0.5), UDim2.fromOffset(360, 370))
 	panel.AnchorPoint = Vector2.new(0.5, 0.5)
 	panel.Visible = false
 	label(panel, "Squad", UDim2.fromOffset(16, 12), UDim2.new(0.5, 0, 0, 30))
@@ -105,7 +106,7 @@ function SquadController.start()
 	list.BackgroundTransparency = 1
 	list.BorderSizePixel = 0
 	list.Position = UDim2.fromOffset(16, 72)
-	list.Size = UDim2.new(1, -32, 1, -128)
+	list.Size = UDim2.new(1, -32, 1, -176)
 	list.AutomaticCanvasSize = Enum.AutomaticSize.Y
 	list.CanvasSize = UDim2.new()
 	list.ScrollBarThickness = 6
@@ -113,6 +114,27 @@ function SquadController.start()
 	local layout = Instance.new("UIListLayout")
 	layout.Padding = UDim.new(0, 6)
 	layout.Parent = list
+
+	-- Invite Roblox friends who aren't in this server (Roblox's own invite window).
+	local invite =
+		button(panel, "Invite friends to Deep Salvage", GREEN, UDim2.new(0, 16, 1, -96), UDim2.new(1, -32, 0, 40))
+	local inviteSentRemote = Remotes.get("InviteSent")
+	invite.Activated:Connect(function()
+		local ok, canInvite = pcall(SocialService.CanSendGameInviteAsync, SocialService, localPlayer)
+		if ok and canInvite then
+			SocialService:PromptGameInvite(localPlayer)
+		else
+			invite.Text = "Invites unavailable here"
+			task.delay(2, function()
+				invite.Text = "Invite friends to Deep Salvage"
+			end)
+		end
+	end)
+	SocialService.GameInvitePromptClosed:Connect(function(player: Player, recipientIds: { number })
+		if player == localPlayer and #recipientIds > 0 then
+			inviteSentRemote:FireServer(#recipientIds)
+		end
+	end)
 
 	local leave = button(panel, "Leave squad", RED, UDim2.new(0, 16, 1, -48), UDim2.new(1, -32, 0, 36))
 	leave.Activated:Connect(function()

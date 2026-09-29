@@ -11,7 +11,7 @@ return table.freeze({
 		sell = "Sell your relics at the gold counter",
 		upgrade = "Buy your first upgrade at the blue Gear Locker",
 		base = "Visit your base: show off your best finds here",
-		squad = "Diving is better with friends. Tap SQUAD to invite someone",
+		squad = "Diving is better with friends. Tap SQUAD to team up or invite a friend",
 	} :: { [string]: string }),
 	RelicCount = 3,
 	-- Glowing relics chosen so the three together afford the cheapest upgrade.

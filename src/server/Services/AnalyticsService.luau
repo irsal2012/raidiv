@@ -95,6 +95,13 @@ function AnalyticsService.economy(
 	end)
 end
 
+-- Friends invited from the in-game button (social growth, doc/05 §1).
+function AnalyticsService.invitesSent(player: Player, count: number)
+	safely(function()
+		RobloxAnalytics:LogCustomEvent(player, "InviteSent", count)
+	end)
+end
+
 -- Anti-cheat flags ("speed", "teleport", "economy"). Review these before banning anyone.
 function AnalyticsService.exploitFlag(player: Player, kind: string)
 	safely(function()

@@ -130,6 +130,14 @@ function SquadService.start()
 		sendState(previous)
 	end)
 
+	-- Analytics only: how many friends were invited from the in-game button.
+	local allowInviteLog = RateLimiter.new(0.2, 2)
+	Remotes.get("InviteSent").OnServerEvent:Connect(function(player, count)
+		if allowInviteLog(player) and typeof(count) == "number" and count >= 1 and count <= 100 then
+			services.AnalyticsService.invitesSent(player, math.floor(count))
+		end
+	end)
+
 	Players.PlayerRemoving:Connect(function(player)
 		local previous = Squads.members(state, player.UserId)
 		Squads.removePlayer(state, player.UserId)
