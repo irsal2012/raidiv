@@ -32,6 +32,8 @@ export type DiveState = {
 	weight: number,
 	capacity: number,
 	lampOn: boolean,
+	downed: boolean,
+	downedSecondsLeft: number,
 }
 
 -- Server -> client when the upgrade panel opens or after a purchase.
@@ -39,5 +41,12 @@ export type ProfileState = {
 	coins: number,
 	gear: { [string]: number },
 }
+
+-- Server -> client whenever squad membership changes. Leader first.
+export type SquadState = {
+	members: { { userId: number, name: string } },
+}
+
+export type PingKind = "relic" | "danger" | "look"
 
 return nil

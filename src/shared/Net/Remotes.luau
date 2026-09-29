@@ -10,12 +10,34 @@
 --   BuyUpgrade   client -> server  (track: string)
 --   OpenUpgrades server -> client  ()
 --   ProfileState server -> client  (Types.ProfileState)
+--   SquadInvite          client -> server  (targetUserId: number)
+--   SquadRespond         client -> server  (fromUserId: number, accept: boolean)
+--   SquadLeave           client -> server  ()
+--   SquadState           server -> client  (Types.SquadState)
+--   SquadInviteReceived  server -> client  (fromUserId: number, fromName: string)
+--   Ping                 client -> server  (position: Vector3)
+--   PingShown            server -> client  (position: Vector3, kind: Types.PingKind, label: string, fromName: string)
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
-local NAMES =
-	{ "StartDive", "SetSprint", "SetLamp", "DiveState", "Notify", "BuyUpgrade", "OpenUpgrades", "ProfileState" }
+local NAMES = {
+	"StartDive",
+	"SetSprint",
+	"SetLamp",
+	"DiveState",
+	"Notify",
+	"BuyUpgrade",
+	"OpenUpgrades",
+	"ProfileState",
+	"SquadInvite",
+	"SquadRespond",
+	"SquadLeave",
+	"SquadState",
+	"SquadInviteReceived",
+	"Ping",
+	"PingShown",
+}
 local FOLDER_NAME = "Remotes"
 
 local folder: Instance

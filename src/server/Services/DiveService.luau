@@ -13,6 +13,7 @@ local Types = require(Shared.Types)
 local Gear = require(Shared.Config.Gear)
 local OxygenConfig = require(Shared.Config.Oxygen)
 local Relics = require(Shared.Config.Relics)
+local SquadConfig = require(Shared.Config.Squad)
 local SwimConfig = require(Shared.Config.Swim)
 local Loot = require(Shared.Logic.Loot)
 local OxygenMath = require(Shared.Logic.OxygenMath)
@@ -32,6 +33,10 @@ export type Session = {
 	carried: { Types.RelicInstance },
 	weight: number,
 	capacity: number,
+	-- Downed: waiting for a squadmate to revive. Oxygen is paused and the body is frozen.
+	downed: boolean,
+	downedUntil: number,
+	revivePrompt: ProximityPrompt?,
 	-- Analytics
 	startedAt: number,
 	carriedValue: number, -- sell value picked up this dive; kept after a death drop
@@ -69,8 +74,19 @@ local function sendState(player: Player, session: Session?)
 			weight = session.weight,
 			capacity = session.capacity,
 			lampOn = session.lampOn,
+			downed = session.downed,
+			downedSecondsLeft = if session.downed then math.max(0, session.downedUntil - os.clock()) else 0,
 		}
-		else { diving = false, oxygen = 0, maxOxygen = 0, weight = 0, capacity = 0, lampOn = false }
+		else {
+			diving = false,
+			oxygen = 0,
+			maxOxygen = 0,
+			weight = 0,
+			capacity = 0,
+			lampOn = false,
+			downed = false,
+			downedSecondsLeft = 0,
+		}
 	diveStateRemote:FireClient(player, state)
 end
 
@@ -98,6 +114,8 @@ local function startDive(player: Player)
 		carried = {},
 		weight = 0,
 		capacity = Gear.valueAt("bag", profile.gear.bag) or 0,
+		downed = false,
+		downedUntil = 0,
 		startedAt = os.clock(),
 		carriedValue = 0,
 	}
@@ -128,7 +146,7 @@ end
 -- Adds a relic to the player's bag. Returns false if it doesn't fit.
 function DiveService.addCarried(player: Player, relic: Types.RelicInstance): boolean
 	local session = sessions[player]
-	if not session then
+	if not session or session.downed then
 		return false
 	end
 	local weight = Relics.Defs[relic.relicKey].weight
@@ -144,18 +162,87 @@ function DiveService.addCarried(player: Player, relic: Types.RelicInstance): boo
 	return true
 end
 
+-- Unfreezes the body and removes the revive prompt. Safe to call when not downed.
+local function clearDowned(player: Player, session: Session)
+	session.downed = false
+	if session.revivePrompt then
+		session.revivePrompt:Destroy()
+		session.revivePrompt = nil
+	end
+	local root = getBody(player)
+	if root then
+		root.Anchored = false
+	end
+end
+
+local function revive(rescuer: Player, downedPlayer: Player)
+	local session = sessions[downedPlayer]
+	local rescuerSession = sessions[rescuer]
+	if not session or not session.downed or not rescuerSession or rescuerSession.downed then
+		return
+	end
+	if not services.SquadService.areSquadmates(rescuer, downedPlayer) then
+		return
+	end
+	local rescuerRoot = getBody(rescuer)
+	local downedRoot = getBody(downedPlayer)
+	if not rescuerRoot or not downedRoot or (rescuerRoot.Position - downedRoot.Position).Magnitude > 14 then
+		return
+	end
+
+	clearDowned(downedPlayer, session)
+	session.deathCause = nil
+	session.oxygen = math.max(session.oxygen, session.maxOxygen * SquadConfig.ReviveOxygenFraction)
+	sendState(downedPlayer, session)
+	notifyRemote:FireClient(downedPlayer, `{rescuer.DisplayName} revived you!`)
+	notifyRemote:FireClient(rescuer, `You revived {downedPlayer.DisplayName}`)
+	services.AnalyticsService.revived(rescuer)
+end
+
+local function goDown(player: Player, session: Session, root: BasePart, cause: string)
+	session.downed = true
+	session.downedUntil = os.clock() + SquadConfig.ReviveWindowSeconds
+	session.deathCause = cause
+	session.sprinting = false
+	root.Anchored = true
+
+	local prompt = Instance.new("ProximityPrompt")
+	prompt.ActionText = "Revive"
+	prompt.ObjectText = player.DisplayName
+	prompt.HoldDuration = SquadConfig.ReviveHoldSeconds
+	prompt.MaxActivationDistance = 10
+	prompt.RequiresLineOfSight = false
+	prompt.Parent = root
+	prompt.Triggered:Connect(function(rescuer)
+		revive(rescuer, player)
+	end)
+	session.revivePrompt = prompt
+
+	for _, member in services.SquadService.members(player) do
+		if member ~= player then
+			notifyRemote:FireClient(
+				member,
+				`{player.DisplayName} is down! Revive them within {SquadConfig.ReviveWindowSeconds}s`
+			)
+		end
+	end
+	sendState(player, session)
+end
+
 function DiveService.endDive(player: Player, reason: "extracted" | "died" | "left")
 	local session = sessions[player]
 	if not session then
 		return
 	end
 	sessions[player] = nil
+	clearDowned(player, session)
 	services.AnalyticsService.diveEnded(
 		player,
 		reason,
 		os.clock() - session.startedAt,
 		session.carriedValue,
-		session.deathCause
+		session.deathCause,
+		#services.SquadService.members(player)
 	)
 
 	local profile = services.PlayerDataService.get(player)
@@ -189,11 +276,17 @@ function DiveService.endDive(player: Player, reason: "extracted" | "died" | "lef
 	end
 end
 
--- Kills a diving player and records why, for analytics. Use instead of setting Health directly.
+-- Takes a diving player out and records why. With a diving squadmate who could revive them
+-- they go down first; otherwise they die. Use instead of setting Health directly.
 function DiveService.kill(player: Player, cause: "oxygen" | "creature")
 	local session = sessions[player]
-	local _, humanoid = getBody(player)
-	if session and humanoid and humanoid.Health > 0 then
+	local root, humanoid = getBody(player)
+	if not session or session.downed or not root or not humanoid or humanoid.Health <= 0 then
+		return
+	end
+	if services.SquadService.hasDivingSquadmate(player) then
+		goDown(player, session, root, cause)
+	else
 		session.deathCause = cause
 		humanoid.Health = 0
 	end
@@ -221,6 +314,17 @@ local function tick(dt: number)
 		if not session then
 			if root.Position.Y < greybox.DiveStartY then
 				startDive(player)
+			end
+			continue
+		end
+
+		if session.downed then
+			if os.clock() >= session.downedUntil then
+				-- Nobody came. Unfreeze first so dropped loot lands where the body is.
+				clearDowned(player, session)
+				humanoid.Health = 0
+			else
+				sendState(player, session)
 			end
 			continue
 		end

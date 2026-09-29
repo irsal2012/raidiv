@@ -94,6 +94,22 @@ Tuning lives in `Config/Oxygen`, `Config/Swim`, `Config/Creatures`, `Config/Gear
 6. **ProfileStore on Wally** needs checking; it may need to be vendored into `src/server`.
 7. **Proximity voice** needs age-verified players who opt in. Pings (`01` §3.4) must work well enough that nobody needs voice.
 
-## 5. Next after Phase 1
+## 5. Phase 2 progress
+
+| Item | Status |
+|---|---|
+| ProfileStore data layer, versioned template | Done (pulled forward) |
+| Analytics events | Done (pulled forward); squad size and revives added with squads |
+| **Squad system: invites, shared dive, revive, pings** | **Code written 2026-09-29, not yet run in Studio.** `Logic/Squads.luau` holds the unit-tested rules (invite, accept, leave, cap of 4, 60 s invite expiry). `SquadService` handles membership and remotes. In `DiveService`, a diver with a diving squadmate goes *downed* for 20 s (frozen, oxygen paused, ignored by creatures) instead of dying, and a squadmate holds E for 2 s to revive them with at least 30% air. Solo divers still die outright. `PingService` labels pings from world state (RELIC name / DANGER / LOOK) and relays them to the squad only. Client: `SquadController` (SQUAD button, invite popup, member list) and `PingController` (G / R1 / touch). "Shared dive" comes free while there's one zone; per-squad instances wait for the zone generator. |
+| Zone generator from room modules | Next |
+| All 3 creatures | Not started |
+| Gear upgrades (6 tracks) | 4 of 6 done; sonar and suit need gameplay first |
+| Rarity/mutation + collection book | Rarity and mutations done; collection book UI not started |
+| Personal base with pedestals | Not started |
+| Daily currents modifier | Not started |
+
+**Testing squads in Studio:** Test tab → Clients and Servers → 2 players → Start. Use the SQUAD button in one window to invite the other.
+
+## 6. Next after Phase 1
 
 Phase 2 starts with the data layer (ProfileStore + versioned template + migrations), then the zone generator from room modules. Extend `tests/run.luau` with economy and receipt-idempotency tests before `MonetizationService` exists.

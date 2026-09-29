@@ -103,7 +103,12 @@ function HudController.start()
 		fill.BackgroundColor3 = if low then LOW_OXYGEN_COLOR else OXYGEN_COLOR
 		-- Blink "LOW AIR" at 1 Hz. Breathing audio joins in the Phase 3 audio pass.
 		local blinkOn = os.clock() % 1 < 0.5
-		oxygenText.Text = if low and blinkOn then "LOW AIR" else `O₂ {math.floor(fraction * 100)}%`
+		if state.downed then
+			fill.BackgroundColor3 = LOW_OXYGEN_COLOR
+			oxygenText.Text = `DOWN! Squadmate revive: {math.ceil(state.downedSecondsLeft)}s`
+		else
+			oxygenText.Text = if low and blinkOn then "LOW AIR" else `O₂ {math.floor(fraction * 100)}%`
+		end
 		bagText.Text = `Bag {state.weight} / {state.capacity}{if state.lampOn then "" else "   (lamp off)"}`
 	end)
 

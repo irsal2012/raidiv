@@ -120,6 +120,17 @@ local function fillEmptySlots()
 	end
 end
 
+-- Display name of a world relic within `radius` of `position`, for pings.
+function RelicService.nameNear(position: Vector3, radius: number): string?
+	for _, entry in worldRelics do
+		if (entry.part.Position - position).Magnitude <= radius then
+			local name = Relics.Defs[entry.relic.relicKey].displayName
+			return if entry.relic.mutation then `{entry.relic.mutation} {name}` else name
+		end
+	end
+	return nil
+end
+
 -- Puts relics back into the world around `position` (death or disconnect mid-dive).
 function RelicService.dropAt(position: Vector3, relics: { Types.RelicInstance })
 	for _, relic in relics do

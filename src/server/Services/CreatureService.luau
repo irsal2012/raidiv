@@ -82,7 +82,7 @@ local function findVisibleTarget(creature: Creature): Player?
 	for _, player in Players:GetPlayers() do
 		local session = services.DiveService.getSession(player)
 		local root, humanoid = getBody(player)
-		if not session or not root or not humanoid or humanoid.Health <= 0 then
+		if not session or session.downed or not root or not humanoid or humanoid.Health <= 0 then
 			continue
 		end
 		local distance = (root.Position - position).Magnitude
@@ -225,6 +225,15 @@ local function spawnDrifter(room: string): Creature
 	}
 	table.insert(creatures, creature)
 	return creature
+end
+
+function CreatureService.isNear(position: Vector3, radius: number): boolean
+	for _, creature in creatures do
+		if (creature.part.Position - position).Magnitude <= radius then
+			return true
+		end
+	end
+	return false
 end
 
 -- Something made noise at `position`. Creatures within `radius * hearingMultiplier` investigate.

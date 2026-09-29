@@ -7,6 +7,8 @@
 --   Onboarding funnel   Joined -> FirstDive -> FirstRelic -> FirstExtraction -> FirstSale -> FirstUpgrade
 --                       Each step logged once per player, ever (tracked in profile.onboarding).
 --   Dive results        DiveEnded (value = seconds), DiveLoot (value = Coins carried), DiveDeath (cause)
+--                       Field 2 on dive events is squad size ("1".. "4"): target is >= 40% of dives in squads.
+--   Squads              Revive (who revived)
 --   Economy             Coins sourced by selling, sunk into upgrades
 
 local RobloxAnalytics = game:GetService("AnalyticsService")
@@ -55,14 +57,22 @@ function AnalyticsService.diveEnded(
 	result: "extracted" | "died" | "left",
 	seconds: number,
 	lootValue: number,
-	deathCause: string?
+	deathCause: string?,
+	squadSize: number
 )
+	local squad = tostring(squadSize)
 	safely(function()
-		RobloxAnalytics:LogCustomEvent(player, "DiveEnded", math.floor(seconds), fields(result))
-		RobloxAnalytics:LogCustomEvent(player, "DiveLoot", lootValue, fields(result))
+		RobloxAnalytics:LogCustomEvent(player, "DiveEnded", math.floor(seconds), fields(result, squad))
+		RobloxAnalytics:LogCustomEvent(player, "DiveLoot", lootValue, fields(result, squad))
 		if result == "died" then
-			RobloxAnalytics:LogCustomEvent(player, "DiveDeath", 1, fields(deathCause or "other"))
+			RobloxAnalytics:LogCustomEvent(player, "DiveDeath", 1, fields(deathCause or "other", squad))
 		end
+	end)
+end
+
+function AnalyticsService.revived(rescuer: Player)
+	safely(function()
+		RobloxAnalytics:LogCustomEvent(rescuer, "Revive", 1)
 	end)
 end
 
