@@ -58,6 +58,9 @@ local layout: ZoneLayout.Layout
 local roomKinds: { [string]: string } = {}
 local relicSpawns: { Vector3 } = {}
 
+export type LurkerSpot = { room: string, position: Vector3, facing: Vector3 }
+local lurkerSpots: { LurkerSpot } = {}
+
 function GreyboxService.roomCenter(key: string): Vector3
 	local room = layout.rooms[key]
 	return Vector3.new(room.x * ROOM_SPACING, ROOM_Y, room.z * ROOM_SPACING)
@@ -109,6 +112,10 @@ end
 
 function GreyboxService.relicSpawns(): { Vector3 }
 	return relicSpawns
+end
+
+function GreyboxService.lurkerSpots(): { LurkerSpot }
+	return lurkerSpots
 end
 
 local function block(parent: Instance, cframe: CFrame, size: Vector3): Part
@@ -189,6 +196,19 @@ local function buildRoom(parent: Instance, key: string)
 	end
 
 	decorate(model, center, roomKinds[key])
+
+	for _, spot in lurkerSpots do
+		if spot.room == key then
+			local vent = block(
+				model,
+				CFrame.lookAt(spot.position - spot.facing * 2.5, spot.position - spot.facing * 3),
+				Vector3.new(8, 6, 0.5)
+			)
+			vent.Name = "Vent"
+			vent.Material = Enum.Material.DiamondPlate
+			vent.Color = Color3.fromRGB(35, 38, 40)
+		end
+	end
 
 	-- Flood the room including its walls, so water runs continuously through doorways.
 	Workspace.Terrain:FillBlock(
@@ -288,6 +308,28 @@ local function generate()
 		roomKinds[key] = if key == layout.start
 			then "plain"
 			else Loot.weightedPick(kinds, ZoneConfig.RoomKindWeights :: any, rng) :: string
+	end
+
+	-- Lurker vents: rooms away from the start, on a wall without a door, low on the wall.
+	local candidates = {}
+	for _, key in layout.order do
+		local room = layout.rooms[key]
+		if key ~= layout.start and room.depth >= 2 and #layout.neighbors[key] < 4 then
+			table.insert(candidates, key)
+		end
+	end
+	for _ = 1, math.min(ZoneConfig.LurkerCount, #candidates) do
+		local key = table.remove(candidates, math.floor(rng() * #candidates) + 1) :: string
+		local room = layout.rooms[key]
+		for _, dir in { Vector3.xAxis, -Vector3.xAxis, Vector3.zAxis, -Vector3.zAxis } do
+			local neighbor = ZoneLayout.key(room.x + math.round(dir.X), room.z + math.round(dir.Z))
+			if not table.find(layout.neighbors[key], neighbor) then
+				local wallInside = GreyboxService.roomCenter(key) + dir * (ROOM_HALF - 3) - Vector3.yAxis * 6
+				-- `facing` points into the room, away from the wall.
+				table.insert(lurkerSpots, { room = key, position = wallInside, facing = -dir })
+				break
+			end
+		end
 	end
 
 	for _, key in layout.order do

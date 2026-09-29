@@ -12,6 +12,8 @@ return table.freeze({
 	SpawnsStart = 1,
 	SpawnsNormal = 3,
 	SpawnsDeadEnd = 5,
+	-- Lurkers hide in wall vents in this many rooms (never the start room or its neighbours).
+	LurkerCount = 2,
 	-- Relative odds for grey-box room modules (not used for the start room).
 	RoomKindWeights = table.freeze({ plain = 3, pillars = 2, crates = 2 }),
 })

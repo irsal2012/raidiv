@@ -16,6 +16,7 @@
 --   SquadState           server -> client  (Types.SquadState)
 --   SquadInviteReceived  server -> client  (fromUserId: number, fromName: string)
 --   Ping                 client -> server  (position: Vector3)
+--   DropRelic            client -> server  ()
 --   PingShown            server -> client  (position: Vector3, kind: Types.PingKind, label: string, fromName: string)
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -37,6 +38,7 @@ local NAMES = {
 	"SquadInviteReceived",
 	"Ping",
 	"PingShown",
+	"DropRelic",
 }
 local FOLDER_NAME = "Remotes"
 

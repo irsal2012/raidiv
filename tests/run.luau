@@ -144,6 +144,20 @@ test("an unloaded starter diver escapes the Drifter only by sprinting", function
 	assert(SwimMath.speed(Swim, baseSpeed, true, 0, capacity) > chase, "sprinting should outrun the chase")
 end)
 
+test("the Warden catches a full-bag diver but not an unloaded one", function()
+	local baseSpeed = Gear.valueAt("fins", 1) :: number
+	local capacity = Gear.valueAt("bag", 1) :: number
+	local warden = Creatures.Warden.chaseSpeed
+	assert(SwimMath.speed(Swim, baseSpeed, false, 0, capacity) > warden, "unloaded swim should outrun the Warden")
+	assert(
+		SwimMath.speed(Swim, baseSpeed, true, capacity, capacity) < warden,
+		"full-bag sprint should not outrun the Warden"
+	)
+	-- At the top fins level a full bag must still be a liability.
+	local topSpeed = Gear.valueAt("fins", Gear.MaxLevel) :: number
+	assert(SwimMath.speed(Swim, topSpeed, false, capacity, capacity) < warden, "maxed fins, full bag, no sprint")
+end)
+
 test("lamp range fits SpotLight's 60-stud cap", function()
 	for _, range in Gear.Tracks.lamp.values do
 		assert(range <= 60, `lamp range {range} exceeds 60`)

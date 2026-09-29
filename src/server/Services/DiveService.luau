@@ -278,7 +278,7 @@ end
 
 -- Takes a diving player out and records why. With a diving squadmate who could revive them
 -- they go down first; otherwise they die. Use instead of setting Health directly.
-function DiveService.kill(player: Player, cause: "oxygen" | "creature")
+function DiveService.kill(player: Player, cause: "oxygen" | "drifter" | "lurker" | "warden")
 	local session = sessions[player]
 	local root, humanoid = getBody(player)
 	if not session or session.downed or not root or not humanoid or humanoid.Health <= 0 then
@@ -290,6 +290,27 @@ function DiveService.kill(player: Player, cause: "oxygen" | "creature")
 		session.deathCause = cause
 		humanoid.Health = 0
 	end
+end
+
+-- Drops the heaviest carried relic at the diver's position. Dropping makes noise.
+function DiveService.dropHeaviest(player: Player)
+	local session = sessions[player]
+	local root = getBody(player)
+	if not session or session.downed or not root or #session.carried == 0 then
+		return
+	end
+	local heaviest = 1
+	for i, relic in session.carried do
+		if Relics.Defs[relic.relicKey].weight > Relics.Defs[session.carried[heaviest].relicKey].weight then
+			heaviest = i
+		end
+	end
+	local relic = table.remove(session.carried, heaviest) :: Types.RelicInstance
+	local def = Relics.Defs[relic.relicKey]
+	session.weight -= def.weight
+	services.RelicService.dropAt(root.Position, { relic })
+	services.CreatureService.emitNoise(root.Position, def.noise)
+	sendState(player, session)
 end
 
 -- Carried relics go back into the world at the player's position for squadmates to recover.
@@ -393,6 +414,13 @@ function DiveService.start()
 		local session = sessions[player]
 		if session then
 			session.sprinting = sprinting
+		end
+	end)
+
+	local allowDrop = RateLimiter.new(3, 3)
+	Remotes.get("DropRelic").OnServerEvent:Connect(function(player)
+		if allowDrop(player) then
+			DiveService.dropHeaviest(player)
 		end
 	end)
 
