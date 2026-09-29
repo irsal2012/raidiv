@@ -47,7 +47,8 @@ local GreyboxService = {
 	DiveStartY = -4,
 	-- A diving player above this height has climbed out: extraction.
 	ExtractAboveY = 2,
-	DiveEntry = Vector3.new(0, -6, 0),
+	-- Deep in the shaft, so a diver starts well underwater instead of bobbing at the top.
+	DiveEntry = Vector3.new(0, -18, 0),
 	BoatSpawn = Vector3.new(0, 5, -20),
 	Seed = 0,
 	CreatureSpawnRoom = "",

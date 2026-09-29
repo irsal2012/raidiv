@@ -30,7 +30,8 @@ Press **Play**. For co-op, use **Test → Clients and Servers** with 2–4 playe
 | Action | Keyboard | Gamepad | Mobile |
 |---|---|---|---|
 | Dive | DIVE button | DIVE button | DIVE button |
-| Swim | WASD + camera, Space to rise | Left stick | Thumbstick |
+| Swim | WASD + camera | Left stick | Thumbstick |
+| Swim up / down | Space / C or Ctrl | A / L2 | Up / Down buttons |
 | Take relic / use counter, locker, pedestal | Hold E | Hold X | Tap prompt |
 | Sprint (hold) | Shift | L3 | Sprint button |
 | Toggle lamp | F | Y | Lamp button |

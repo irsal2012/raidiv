@@ -26,7 +26,7 @@ local COVE_ROOM = 36 -- interior width
 local COVE_ROOM_HEIGHT = 14
 local COVE_ROOM_TOP = -16 -- interior ceiling height
 local COVE_SPAWN = COVE + Vector3.new(0, 3, -18)
-local COVE_ENTRY = COVE + Vector3.new(0, -6, 0)
+local COVE_ENTRY = COVE + Vector3.new(0, -10, 0) -- near the shaft bottom (-14)
 local RELIC_SPOTS = {
 	Vector3.new(-10, -28.5, 8),
 	Vector3.new(10, -28.5, 8),
