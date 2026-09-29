@@ -30,6 +30,7 @@
 --   ShopState            server -> client  (Types.ShopState)
 --   ShopBuyCosmetic      client -> server  (id: string)
 --   ShopEquip            client -> server  (id: string)
+--   DevGrant             client -> server  ()   Studio-only test Coins/Pearls
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -63,6 +64,7 @@ local NAMES = {
 	"ShopState",
 	"ShopBuyCosmetic",
 	"ShopEquip",
+	"DevGrant",
 }
 local FOLDER_NAME = "Remotes"
 
