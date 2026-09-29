@@ -187,6 +187,35 @@ local function buildRoom(parent: Instance, key: string)
 	)
 end
 
+-- A floating world label (sized in studs, so it shrinks with distance like a real sign).
+local function floatingLabel(parent: Instance, position: Vector3, text: string, color: Color3)
+	local anchor = Instance.new("Part")
+	anchor.Name = `Label_{text}`
+	anchor.Anchored = true
+	anchor.CanCollide = false
+	anchor.CanQuery = false
+	anchor.CanTouch = false
+	anchor.Transparency = 1
+	anchor.Size = Vector3.one
+	anchor.Position = position
+	anchor.Parent = parent
+
+	local billboard = Instance.new("BillboardGui")
+	billboard.Size = UDim2.fromScale(12, 2.5)
+	billboard.MaxDistance = 150
+	billboard.LightInfluence = 0
+	billboard.Parent = anchor
+	local label = Instance.new("TextLabel")
+	label.BackgroundTransparency = 1
+	label.Size = UDim2.fromScale(1, 1)
+	label.Font = Enum.Font.GothamBlack
+	label.TextScaled = true
+	label.TextColor3 = color
+	label.TextStrokeTransparency = 0.2
+	label.Text = text
+	label.Parent = billboard
+end
+
 local function buildSurface(parent: Instance)
 	-- Shaft from the top of room A's ceiling to the surface.
 	local shaftHeight = -(ROOM_Y + ROOM_HEIGHT / 2 + WALL)
@@ -245,6 +274,12 @@ local function buildSurface(parent: Instance)
 	upgradePrompt.MaxActivationDistance = 10
 	upgradePrompt.Parent = locker
 	GreyboxService.UpgradePrompt = upgradePrompt
+
+	-- Signs so a first-time player can read the hub without help (Phase 3 exit test).
+	floatingLabel(parent, Vector3.new(24, 7, -20), "SELL RELICS", Color3.fromRGB(255, 205, 60))
+	floatingLabel(parent, Vector3.new(-24, 7, -20), "UPGRADES", Color3.fromRGB(110, 170, 255))
+	floatingLabel(parent, Vector3.new(0, 7, 0), "DIVE HERE", Color3.fromRGB(80, 220, 200))
+	floatingLabel(parent, Vector3.new(0, 7, 45), "PLAYER BASES", Color3.fromRGB(230, 230, 230))
 end
 
 -- Picks the seed, generates the layout, room kinds and relic spawns. Deterministic per seed.
