@@ -173,7 +173,9 @@ function CollectionController.start()
 		local lines = {}
 		for _, milestone in Milestones do
 			local mark = if state.claimed[milestone.id] then "✓" else "·"
-			local reward = `{milestone.coins} Coins` .. (if milestone.title then ` + "{milestone.title}"` else "")
+			local reward = `{milestone.coins} Coins`
+				.. (if milestone.pearls then ` + {milestone.pearls} Pearls` else "")
+				.. (if milestone.title then ` + "{milestone.title}"` else "")
 			table.insert(lines, `{mark} {milestone.label}: {reward}`)
 		end
 		milestoneText.Text = "Mutations: Gl Glowing · Ba Barnacled · Gi Gilded · Cu Cursed\n"

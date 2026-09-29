@@ -21,6 +21,9 @@ local Collection = require("../src/shared/Logic/Collection")
 local CollectionMilestones = require("../src/shared/Config/Collection")
 local Tutorial = require("../src/shared/Logic/Tutorial")
 local TutorialConfig = require("../src/shared/Config/Tutorial")
+local Store = require("../src/shared/Logic/Store")
+local CosmeticsCatalog = require("../src/shared/Config/Cosmetics")
+local MonetizationConfig = require("../src/shared/Config/Monetization")
 
 local passed, failed = 0, 0
 
@@ -377,6 +380,63 @@ test("tutorial ignores out-of-order events, handles empty extraction and skip", 
 	expectEq(Tutorial.initialStep(4), "done")
 	for _, step in TutorialConfig.Steps do
 		assert(step == "done" or TutorialConfig.Text[step], `step {step} has no banner text`)
+	end
+end)
+
+local function storeProfile(): any
+	return { pearls = 0, purchases = {}, cosmetics = { owned = {}, equipped = {} }, vipLastClaimDay = 0 }
+end
+
+local TEST_PACKS = { { key = "A", id = 111, pearls = 100 }, { key = "B", id = 0, pearls = 999 } }
+
+test("receipts grant once, ignore duplicates, unknown and not-yet-created products", function()
+	local data = storeProfile()
+	local outcome, pearls = Store.applyReceipt(data, "p1", 111, TEST_PACKS)
+	expectEq(outcome, "granted")
+	expectEq(pearls, 100)
+	expectEq(data.pearls, 100)
+	-- Roblox retries the same receipt: nothing more is granted.
+	expectEq((Store.applyReceipt(data, "p1", 111, TEST_PACKS)), "duplicate")
+	expectEq(data.pearls, 100)
+	-- Product id 0 means "not created yet" and must never match.
+	expectEq((Store.applyReceipt(data, "p2", 0, TEST_PACKS)), "unknown_product")
+	expectEq((Store.applyReceipt(data, "p3", 222, TEST_PACKS)), "unknown_product")
+	expectEq(data.purchases.p2, nil)
+	expectEq(data.pearls, 100)
+end)
+
+test("cosmetics: buy, refuse when broke or owned, equip, default fallback", function()
+	local data = storeProfile()
+	expectEq(Store.equipped(data, CosmeticsCatalog, "lamp").id, "lamp_standard")
+	expectEq(Store.buyCosmetic(data, CosmeticsCatalog, "lamp_teal"), "not_enough_pearls")
+	data.pearls = 200
+	expectEq(Store.buyCosmetic(data, CosmeticsCatalog, "lamp_teal"), "ok")
+	expectEq(data.pearls, 50)
+	expectEq(Store.buyCosmetic(data, CosmeticsCatalog, "lamp_teal"), "owned")
+	expectEq(Store.buyCosmetic(data, CosmeticsCatalog, "lamp_standard"), "owned") -- free items
+	expectEq(Store.equipCosmetic(data, CosmeticsCatalog, "lamp_violet"), "not_owned")
+	expectEq(Store.equipCosmetic(data, CosmeticsCatalog, "lamp_teal"), "ok")
+	expectEq(Store.equipped(data, CosmeticsCatalog, "lamp").id, "lamp_teal")
+	expectEq(Store.buyCosmetic(data, CosmeticsCatalog, "nope"), "unknown")
+end)
+
+test("VIP daily bonus pays once per day", function()
+	local data = storeProfile()
+	expectEq(Store.claimVipDaily(data, 100, 25), 25)
+	expectEq(Store.claimVipDaily(data, 100, 25), 0)
+	expectEq(Store.claimVipDaily(data, 101, 25), 25)
+	expectEq(data.pearls, 50)
+end)
+
+test("monetization config: ids default to 0 and bigger packs are better value", function()
+	local previousRate = 0
+	for _, pack in MonetizationConfig.PearlPacks do
+		local rate = pack.pearls / pack.price
+		assert(rate > previousRate, `{pack.key} is not better value than the smaller pack`)
+		previousRate = rate
+	end
+	for _, item in CosmeticsCatalog do
+		expectEq(#item.color, 3)
 	end
 end)
 

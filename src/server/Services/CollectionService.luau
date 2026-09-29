@@ -53,8 +53,12 @@ function CollectionService.record(player: Player, relics: { Types.RelicInstance 
 		if milestone.title then
 			profile.titles[milestone.title] = true
 		end
+		if milestone.pearls then
+			profile.pearls += milestone.pearls
+		end
 		local titleText = if milestone.title then ` and the title "{milestone.title}"` else ""
-		notifyRemote:FireClient(player, `Collection reward: {milestone.coins} Coins{titleText}!`)
+		local pearlText = if milestone.pearls then `, {milestone.pearls} Pearls` else ""
+		notifyRemote:FireClient(player, `Collection reward: {milestone.coins} Coins{pearlText}{titleText}!`)
 	end
 
 	if #added > 0 then

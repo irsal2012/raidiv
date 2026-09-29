@@ -35,6 +35,7 @@ local TEMPLATE: Types.Profile = {
 	titles = {},
 	collectionRewards = {},
 	tutorial = { step = "" },
+	vipLastClaimDay = 0,
 }
 
 -- MIGRATIONS[n] upgrades saved data from version n to n + 1. Add one whenever the
@@ -99,6 +100,31 @@ local function onPlayerAdded(player: Player)
 	for _, callback in loadedCallbacks do
 		task.spawn(callback, player, profile.Data)
 	end
+end
+
+-- Saves now and waits until the DataStore holds data for which `check(savedData)` is true.
+-- Used before confirming Robux purchases. Returns false on timeout or if the session ended.
+function PlayerDataService.saveUntil(player: Player, check: (saved: any) -> boolean, timeoutSeconds: number): boolean
+	local profile = profiles[player]
+	if not profile then
+		return false
+	end
+	if profile.LastSavedData and check(profile.LastSavedData) then
+		return true
+	end
+	local confirmed = false
+	local connection = profile.OnAfterSave:Connect(function(saved)
+		if check(saved) then
+			confirmed = true
+		end
+	end)
+	profile:Save()
+	local deadline = os.clock() + timeoutSeconds
+	while not confirmed and os.clock() < deadline and profile:IsActive() do
+		task.wait(0.25)
+	end
+	connection:Disconnect()
+	return confirmed
 end
 
 -- Runs `callback(player, data)` whenever a player's profile finishes loading. Register in init.

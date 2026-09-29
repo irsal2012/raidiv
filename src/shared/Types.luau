@@ -25,6 +25,7 @@ export type Profile = {
 	titles: { [string]: boolean }, -- earned titles (display comes with cosmetics)
 	collectionRewards: { [string]: boolean }, -- collection milestones already paid
 	tutorial: { step: string }, -- "" until first join; see Config/Tutorial
+	vipLastClaimDay: number, -- UTC day number of the last VIP Pearl bonus
 }
 
 -- Server -> client every dive tick.
@@ -60,6 +61,15 @@ export type CollectionState = {
 export type DisplayItem = { id: string, name: string, rarity: string }
 
 export type SonarHit = { position: Vector3, rarity: string }
+
+-- Server -> client for the shop panel.
+export type ShopState = {
+	unlocked: boolean, -- the shop appears after the first extraction (doc/04 §3)
+	pearls: number,
+	passes: { [string]: boolean },
+	ownedCosmetics: { [string]: boolean },
+	equipped: { [string]: string },
+}
 
 export type PingKind = "relic" | "danger" | "look"
 

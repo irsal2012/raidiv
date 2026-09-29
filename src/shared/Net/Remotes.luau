@@ -26,6 +26,10 @@
 --   TutorialSkip         client -> server  ()
 --   TutorialScare        server -> client  ()
 --   SonarPing            server -> client  (hits: { Types.SonarHit })
+--   ShopRequest          client -> server  ()
+--   ShopState            server -> client  (Types.ShopState)
+--   ShopBuyCosmetic      client -> server  (id: string)
+--   ShopEquip            client -> server  (id: string)
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -55,6 +59,10 @@ local NAMES = {
 	"TutorialSkip",
 	"TutorialScare",
 	"SonarPing",
+	"ShopRequest",
+	"ShopState",
+	"ShopBuyCosmetic",
+	"ShopEquip",
 }
 local FOLDER_NAME = "Remotes"
 

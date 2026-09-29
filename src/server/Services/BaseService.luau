@@ -12,6 +12,7 @@ local Workspace = game:GetService("Workspace")
 local Shared = ReplicatedStorage.Shared
 local Types = require(Shared.Types)
 local BaseConfig = require(Shared.Config.Base)
+local Monetization = require(Shared.Config.Monetization)
 local Relics = require(Shared.Config.Relics)
 local Remotes = require(Shared.Net.Remotes)
 local RateLimiter = require(script.Parent.Parent.Util.RateLimiter)
@@ -45,11 +46,19 @@ local function relicLabel(relic: Types.RelicInstance): string
 	return if relic.mutation then `{relic.mutation} {name}` else name
 end
 
-local function pedestalOffset(slot: number): Vector3
-	-- Two rows of five along the plot, facing the path in front of it.
+local function pedestalOffset(slot: number, slots: number): Vector3
+	-- Rows of five, centred on the plot and nudged away from the sign at the front edge.
 	local column = (slot - 1) % 5
 	local row = math.floor((slot - 1) / 5)
-	return Vector3.new(-10 + column * 5, 0, -6 + row * 10)
+	local rows = math.ceil(slots / 5)
+	return Vector3.new(-10 + column * 5, 0, 1.5 + (row - (rows - 1) / 2) * 6)
+end
+
+local function slotCount(player: Player): number
+	local extra = if services.MonetizationService.owns(player, "DeluxeBase")
+		then Monetization.DeluxeBaseExtraSlots
+		else 0
+	return BaseConfig.Slots + extra
 end
 
 -- Shows (or clears) the relic on one pedestal.
@@ -175,7 +184,8 @@ local function buildPlot(plot: Plot, owner: Player, profile: Types.Profile)
 	signText.Parent = signGui
 
 	plot.pedestals = {}
-	for i = 1, BaseConfig.Slots do
+	local slots = slotCount(owner) -- may yield once per session (game pass check)
+	for i = 1, slots do
 		local slot = tostring(i)
 		local pedestal = Instance.new("Part")
 		pedestal.Name = `Pedestal{slot}`
@@ -183,7 +193,7 @@ local function buildPlot(plot: Plot, owner: Player, profile: Types.Profile)
 		pedestal.Shape = Enum.PartType.Cylinder
 		pedestal.Size = Vector3.new(3, 3, 3)
 		-- Cylinders run along X; stand it up.
-		pedestal.CFrame = CFrame.new(plot.center + pedestalOffset(i) + Vector3.new(0, 2.5, 0))
+		pedestal.CFrame = CFrame.new(plot.center + pedestalOffset(i, slots) + Vector3.new(0, 2.5, 0))
 			* CFrame.Angles(0, 0, math.rad(90))
 		pedestal.Color = Color3.fromRGB(200, 200, 205)
 		pedestal.Material = Enum.Material.Marble
@@ -223,6 +233,20 @@ end
 function BaseService.plotCenter(player: Player): Vector3?
 	local plot = plotOf[player]
 	return plot and plot.center
+end
+
+-- Rebuilds the player's plot in place, e.g. after buying Deluxe Base.
+function BaseService.rebuild(player: Player)
+	local plot = plotOf[player]
+	local profile = services.PlayerDataService.get(player)
+	if not plot or not profile then
+		return
+	end
+	if plot.model then
+		plot.model:Destroy()
+		plot.model = nil
+	end
+	buildPlot(plot, player, profile)
 end
 
 local function onProfileLoaded(player: Player, profile: Types.Profile)

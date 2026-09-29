@@ -95,6 +95,22 @@ function AnalyticsService.economy(
 	end)
 end
 
+-- Robux Pearl packs. Logged as an economy source in the premium currency.
+function AnalyticsService.pearlsPurchased(player: Player, pearls: number, productId: number)
+	local data = services.PlayerDataService.get(player)
+	safely(function()
+		RobloxAnalytics:LogEconomyEvent(
+			player,
+			Enum.AnalyticsEconomyFlowType.Source,
+			"Pearls",
+			pearls,
+			if data then data.pearls else pearls,
+			Enum.AnalyticsEconomyTransactionType.IAP.Name,
+			`PearlPack_{productId}`
+		)
+	end)
+end
+
 function AnalyticsService.init(allServices: any)
 	services = allServices
 end

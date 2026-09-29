@@ -12,6 +12,8 @@ local Shared = ReplicatedStorage.Shared
 local Types = require(Shared.Types)
 local Gear = require(Shared.Config.Gear)
 local Relics = require(Shared.Config.Relics)
+local Cosmetics = require(Shared.Config.Cosmetics)
+local Store = require(Shared.Logic.Store)
 local SquadConfig = require(Shared.Config.Squad)
 local SwimConfig = require(Shared.Config.Swim)
 local Loot = require(Shared.Logic.Loot)
@@ -132,6 +134,8 @@ local function startDive(player: Player)
 		lamp.Angle = 70
 		lamp.Brightness = 4
 		lamp.Range = math.min(60, Gear.valueAt("lamp", profile.gear.lamp) or 30)
+		local lampColor = Store.equipped(profile, Cosmetics, "lamp")
+		lamp.Color = if lampColor then Color3.fromRGB(table.unpack(lampColor.color)) else Color3.new(1, 1, 1)
 		lamp.Enabled = true
 		lamp.Parent = head
 	end
@@ -254,6 +258,8 @@ function DiveService.endDive(player: Player, reason: "extracted" | "died" | "lef
 		profile.stats.extractions += 1
 		services.AnalyticsService.onboardingStep(player, "FirstExtraction")
 		services.TutorialService.onExtracted(player, #session.carried)
+		-- First extraction unlocks the shop. Spawned: a pass check may yield, and this runs in the tick loop.
+		task.spawn(services.MonetizationService.sendShopState, player)
 		local count = #session.carried
 		notifyRemote:FireClient(
 			player,
