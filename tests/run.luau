@@ -14,6 +14,7 @@ local OxygenMath = require("../src/shared/Logic/OxygenMath")
 local SwimMath = require("../src/shared/Logic/SwimMath")
 local Upgrade = require("../src/shared/Logic/Upgrade")
 local Squads = require("../src/shared/Logic/Squads")
+local ZoneLayout = require("../src/shared/Logic/ZoneLayout")
 
 local passed, failed = 0, 0
 
@@ -223,6 +224,38 @@ test("removing a player clears their invites both ways", function()
 	Squads.removePlayer(state, 2)
 	expectEq(Squads.accept(state, 3, 2, 0), "no_invite")
 	expectEq(state.invites[2], nil)
+end)
+
+local LAYOUT_PARAMS = { roomCount = 10, extraDoors = 2, minCoord = -3, maxCoord = 3 }
+
+test("zone layouts are deterministic per seed and differ across seeds", function()
+	local a = ZoneLayout.generate(LAYOUT_PARAMS, seeded(1))
+	local b = ZoneLayout.generate(LAYOUT_PARAMS, seeded(1))
+	local c = ZoneLayout.generate(LAYOUT_PARAMS, seeded(2))
+	expectEq(table.concat(a.order, ";"), table.concat(b.order, ";"))
+	assert(table.concat(a.order, ";") ~= table.concat(c.order, ";"), "different seeds should differ")
+end)
+
+test("zone layouts are valid for many seeds", function()
+	for seed = 1, 200 do
+		local layout = ZoneLayout.generate(LAYOUT_PARAMS, seeded(seed))
+		expectEq(#layout.order, LAYOUT_PARAMS.roomCount)
+		expectEq(layout.start, "0,0")
+		assert(layout.deepest ~= layout.start, `seed {seed}: deepest is the start room`)
+		for key, room in layout.rooms do
+			assert(room.x >= -3 and room.x <= 3 and room.z >= -3 and room.z <= 3, `seed {seed}: {key} out of bounds`)
+			-- Every room except the start is reachable (BFS gave it a depth).
+			assert(key == layout.start or room.depth > 0, `seed {seed}: {key} unreachable`)
+			expectEq(room.deadEnd, key ~= layout.start and #layout.neighbors[key] == 1)
+		end
+		for _, edge in layout.edges do
+			local a, b = layout.rooms[edge[1]], layout.rooms[edge[2]]
+			expectEq(math.abs(a.x - b.x) + math.abs(a.z - b.z), 1) -- doors only between adjacent cells
+		end
+		-- A tree has roomCount - 1 doors; loops add up to extraDoors more.
+		local doors = #layout.edges
+		assert(doors >= 9 and doors <= 11, `seed {seed}: {doors} doors`)
+	end
 end)
 
 print(`{passed} passed, {failed} failed`)

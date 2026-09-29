@@ -1,18 +1,24 @@
 --!strict
--- Phase 1 grey-box zone, built in code so the prototype runs from an empty place.
--- Six flooded rooms on a grid, reached by a water shaft from the surface above room A.
--- Phase 2 replaces this with hand-built room modules assembled by ZoneGenerator.
+-- Grey-box zone builder. The layout comes from Logic/ZoneLayout (seeded, unit-tested); this
+-- service turns it into flooded rooms with doors, plus the surface: shaft, ladder, boat,
+-- sell counter and gear locker. Phase 3 swaps the grey-box room modules for Studio-built
+-- models with tagged door attachments.
 --
---   F   D - E      (gz = 1)
---       |   |
---   A - B - C      (gz = 0)
+-- Seed: the day number by default, so everyone gets the same layout each day ("seed of the
+-- day"). To reproduce a layout, set a number attribute ZoneSeed on Workspace in Studio.
+-- The seed in use is written to Workspace's ActiveZoneSeed attribute and printed.
 --
--- B-C-E-D is a loop; F is a dead end off D with extra relic spawns.
 -- Doorways sit at the center of shared walls, so a straight line between adjacent room
 -- centers always passes through the door. CreatureService relies on this.
 
 local Lighting = game:GetService("Lighting")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
+
+local Shared = ReplicatedStorage.Shared
+local ZoneConfig = require(Shared.Config.Zone)
+local Loot = require(Shared.Logic.Loot)
+local ZoneLayout = require(Shared.Logic.ZoneLayout)
 
 local ROOM_SPACING = 50 -- 48 interior + 2 wall
 local ROOM_HALF = 24 -- interior half-width
@@ -22,47 +28,17 @@ local WALL = 2
 local DOOR = 12
 local SHAFT = 16
 
-local ROOM_ORDER = { "A", "B", "C", "D", "E", "F" }
-local ROOM_GRID: { [string]: { number } } = {
-	A = { 0, 0 },
-	B = { 1, 0 },
-	C = { 2, 0 },
-	D = { 1, 1 },
-	E = { 2, 1 },
-	F = { 0, 1 },
-}
-local EDGES = { { "A", "B" }, { "B", "C" }, { "C", "E" }, { "E", "D" }, { "D", "B" }, { "D", "F" } }
-
--- Floor-level offsets from a room center. Each room uses the first N.
+-- Floor-level offsets from a room center. Each room uses the first N. All sit well off the
+-- center lines so they never block the doorway-to-doorway paths.
 local SPAWN_OFFSETS = {
 	Vector3.new(-14, -10, -14),
 	Vector3.new(14, -10, 10),
-	Vector3.new(0, -10, 16),
+	Vector3.new(-16, -10, 14),
 	Vector3.new(16, -10, -16),
-	Vector3.new(-16, -10, 12),
+	Vector3.new(4, -10, 18),
 }
-local SPAWNS_PER_ROOM: { [string]: number } = { A = 1, B = 3, C = 3, D = 3, E = 3, F = 5 }
 
 local FLAT = CFrame.Angles(math.rad(90), 0, 0)
-
-local gridLookup: { [string]: string } = {}
-for key, cell in ROOM_GRID do
-	gridLookup[`{cell[1]},{cell[2]}`] = key
-end
-
-local neighbors: { [string]: { string } } = {}
-local connected: { [string]: { [string]: boolean } } = {}
-for _, key in ROOM_ORDER do
-	neighbors[key] = {}
-	connected[key] = {}
-end
-for _, edge in EDGES do
-	local a, b = edge[1], edge[2]
-	table.insert(neighbors[a], b)
-	table.insert(neighbors[b], a)
-	connected[a][b] = true
-	connected[b][a] = true
-end
 
 local GreyboxService = {
 	SurfaceY = 0,
@@ -71,24 +47,31 @@ local GreyboxService = {
 	-- A diving player above this height has climbed out: extraction.
 	ExtractAboveY = 2,
 	DiveEntry = Vector3.new(0, -6, 0),
-	CreatureSpawnRoom = "C",
+	Seed = 0,
+	CreatureSpawnRoom = "",
 	ZoneFolder = nil :: Folder?,
 	SellPrompt = nil :: ProximityPrompt?,
 	UpgradePrompt = nil :: ProximityPrompt?,
 }
 
+local layout: ZoneLayout.Layout
+local roomKinds: { [string]: string } = {}
+local relicSpawns: { Vector3 } = {}
+
 function GreyboxService.roomCenter(key: string): Vector3
-	local cell = ROOM_GRID[key]
-	return Vector3.new(cell[1] * ROOM_SPACING, ROOM_Y, cell[2] * ROOM_SPACING)
+	local room = layout.rooms[key]
+	return Vector3.new(room.x * ROOM_SPACING, ROOM_Y, room.z * ROOM_SPACING)
 end
 
--- Room containing `position` by grid cell. The shaft counts as room A.
+-- Room containing `position` by grid cell, or nil outside the zone. The shaft counts as the
+-- start room.
 function GreyboxService.roomAt(position: Vector3): string?
-	return gridLookup[`{math.round(position.X / ROOM_SPACING)},{math.round(position.Z / ROOM_SPACING)}`]
+	local key = ZoneLayout.key(math.round(position.X / ROOM_SPACING), math.round(position.Z / ROOM_SPACING))
+	return if layout.rooms[key] then key else nil
 end
 
 function GreyboxService.neighbors(key: string): { string }
-	return neighbors[key]
+	return layout.neighbors[key]
 end
 
 -- Breadth-first route of room keys from `fromKey` to `toKey`, inclusive.
@@ -103,7 +86,7 @@ function GreyboxService.path(fromKey: string, toKey: string): { string }
 	while head <= #queue do
 		local key = queue[head]
 		head += 1
-		for _, nextKey in neighbors[key] do
+		for _, nextKey in layout.neighbors[key] do
 			if visited[nextKey] then
 				continue
 			end
@@ -122,13 +105,6 @@ function GreyboxService.path(fromKey: string, toKey: string): { string }
 		end
 	end
 	return { fromKey }
-end
-
-local relicSpawns: { Vector3 } = {}
-for _, key in ROOM_ORDER do
-	for i = 1, SPAWNS_PER_ROOM[key] do
-		table.insert(relicSpawns, GreyboxService.roomCenter(key) + SPAWN_OFFSETS[i])
-	end
 end
 
 function GreyboxService.relicSpawns(): { Vector3 }
@@ -171,22 +147,55 @@ local function panel(
 	block(parent, cframe * CFrame.new(0, -capY, 0), Vector3.new(holeWidth, capHeight, WALL))
 end
 
+-- Grey-box "room modules": interior props that break line of sight so a diver can hide from
+-- a lamp-hunting creature. Props sit on the diagonals, clear of the center lines and spawns.
+local function decorate(parent: Instance, center: Vector3, kind: string)
+	local floorY = center.Y - ROOM_HEIGHT / 2
+	if kind == "pillars" then
+		for _, corner in { Vector3.new(8, 0, 8), Vector3.new(-8, 0, 8), Vector3.new(8, 0, -8), Vector3.new(-8, 0, -8) } do
+			local pillar = block(parent, CFrame.new(center + corner), Vector3.new(4, ROOM_HEIGHT, 4))
+			pillar.Name = "Pillar"
+		end
+	elseif kind == "crates" then
+		for _, spot in { Vector3.new(8, 0, -8), Vector3.new(-8, 0, 8), Vector3.new(9, 0, 9) } do
+			local crate =
+				block(parent, CFrame.new(center.X + spot.X, floorY + 3, center.Z + spot.Z), Vector3.new(6, 6, 6))
+			crate.Name = "Crate"
+			crate.Material = Enum.Material.WoodPlanks
+			crate.Color = Color3.fromRGB(95, 75, 55)
+		end
+	end
+end
+
 local function buildRoom(parent: Instance, key: string)
+	local room = layout.rooms[key]
 	local center = GreyboxService.roomCenter(key)
-	local cell = ROOM_GRID[key]
 	local outer = ROOM_HALF * 2 + WALL * 2
 	local verticalOffset = ROOM_HEIGHT / 2 + WALL / 2
 
-	panel(parent, CFrame.new(center - Vector3.yAxis * verticalOffset) * FLAT, outer, outer, 0, 0)
-	local shaftHole = if key == "A" then SHAFT else 0
-	panel(parent, CFrame.new(center + Vector3.yAxis * verticalOffset) * FLAT, outer, outer, shaftHole, shaftHole)
+	local model = Instance.new("Model")
+	model.Name = `Room {key} ({roomKinds[key]})`
+	model.Parent = parent
+
+	panel(model, CFrame.new(center - Vector3.yAxis * verticalOffset) * FLAT, outer, outer, 0, 0)
+	local shaftHole = if key == layout.start then SHAFT else 0
+	panel(model, CFrame.new(center + Vector3.yAxis * verticalOffset) * FLAT, outer, outer, shaftHole, shaftHole)
 
 	for _, dir in { Vector3.xAxis, -Vector3.xAxis, Vector3.zAxis, -Vector3.zAxis } do
-		local neighbor = gridLookup[`{cell[1] + math.round(dir.X)},{cell[2] + math.round(dir.Z)}`]
-		local door = if neighbor and connected[key][neighbor] then DOOR else 0
+		local neighbor = ZoneLayout.key(room.x + math.round(dir.X), room.z + math.round(dir.Z))
+		local door = if table.find(layout.neighbors[key], neighbor) then DOOR else 0
 		local wallCenter = center + dir * (ROOM_HALF + WALL / 2)
-		panel(parent, CFrame.lookAt(wallCenter, wallCenter + dir), outer, ROOM_HEIGHT + WALL * 2, door, door)
+		panel(model, CFrame.lookAt(wallCenter, wallCenter + dir), outer, ROOM_HEIGHT + WALL * 2, door, door)
 	end
+
+	decorate(model, center, roomKinds[key])
+
+	-- Flood the room including its walls, so water runs continuously through doorways.
+	Workspace.Terrain:FillBlock(
+		CFrame.new(center),
+		Vector3.new(outer, ROOM_HEIGHT + WALL * 2, outer),
+		Enum.Material.Water
+	)
 end
 
 local function buildSurface(parent: Instance)
@@ -249,6 +258,50 @@ local function buildSurface(parent: Instance)
 	GreyboxService.UpgradePrompt = upgradePrompt
 end
 
+-- Picks the seed, generates the layout, room kinds and relic spawns. Deterministic per seed.
+local function generate()
+	local override = Workspace:GetAttribute("ZoneSeed")
+	local seed = if typeof(override) == "number" then override else math.floor(os.time() / 86400)
+	GreyboxService.Seed = seed
+	Workspace:SetAttribute("ActiveZoneSeed", seed)
+	print(`[Zone] seed {seed}`)
+
+	local random = Random.new(seed)
+	local function rng(): number
+		return random:NextNumber()
+	end
+
+	layout = ZoneLayout.generate({
+		roomCount = ZoneConfig.RoomCount,
+		extraDoors = ZoneConfig.ExtraDoors,
+		minCoord = ZoneConfig.MinCoord,
+		maxCoord = ZoneConfig.MaxCoord,
+	}, rng)
+	GreyboxService.CreatureSpawnRoom = layout.deepest
+
+	local kinds: { string } = {}
+	for kind in ZoneConfig.RoomKindWeights :: { [string]: number } do
+		table.insert(kinds, kind)
+	end
+	table.sort(kinds) -- table iteration order isn't stable; the seed must be
+	for _, key in layout.order do
+		roomKinds[key] = if key == layout.start
+			then "plain"
+			else Loot.weightedPick(kinds, ZoneConfig.RoomKindWeights :: any, rng) :: string
+	end
+
+	for _, key in layout.order do
+		local room = layout.rooms[key]
+		local count = if key == layout.start
+			then ZoneConfig.SpawnsStart
+			elseif room.deadEnd then ZoneConfig.SpawnsDeadEnd
+			else ZoneConfig.SpawnsNormal
+		for i = 1, count do
+			table.insert(relicSpawns, GreyboxService.roomCenter(key) + SPAWN_OFFSETS[i])
+		end
+	end
+end
+
 function GreyboxService.init()
 	-- The default Studio template's baseplate and spawn would cover the shaft.
 	for _, name in { "Baseplate", "SpawnLocation" } do
@@ -258,24 +311,19 @@ function GreyboxService.init()
 		end
 	end
 
+	generate()
+
 	local folder = Instance.new("Folder")
 	folder.Name = "Zone"
-	for _, key in ROOM_ORDER do
+	for _, key in layout.order do
 		buildRoom(folder, key)
 	end
 	buildSurface(folder)
 	folder.Parent = Workspace
 	GreyboxService.ZoneFolder = folder
 
-	-- Water: one block over the whole room grid, one up the shaft.
+	-- Water up the shaft (rooms flood themselves in buildRoom).
 	local terrain = Workspace.Terrain
-	local gridMin = Vector3.new(-ROOM_HALF - WALL, ROOM_Y - ROOM_HEIGHT / 2 - WALL, -ROOM_HALF - WALL)
-	local gridMax = Vector3.new(
-		2 * ROOM_SPACING + ROOM_HALF + WALL,
-		ROOM_Y + ROOM_HEIGHT / 2 + WALL,
-		ROOM_SPACING + ROOM_HALF + WALL
-	)
-	terrain:FillBlock(CFrame.new((gridMin + gridMax) / 2), gridMax - gridMin, Enum.Material.Water)
 	local shaftBottom = ROOM_Y + ROOM_HEIGHT / 2 + WALL
 	terrain:FillBlock(
 		CFrame.new(0, (shaftBottom + GreyboxService.SurfaceY) / 2, 0),
