@@ -143,6 +143,9 @@ function PlayerDataService.addCoins(player: Player, amount: number)
 		return
 	end
 	profile.Data.coins += amount
+	if amount > 0 then
+		services.AntiCheatService.onCoins(player, amount)
+	end
 	local leaderstats = player:FindFirstChild("leaderstats")
 	local coins = leaderstats and leaderstats:FindFirstChild("Coins") :: IntValue?
 	if coins then

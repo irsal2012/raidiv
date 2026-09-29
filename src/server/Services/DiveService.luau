@@ -413,6 +413,7 @@ function DiveService.start()
 		if root and humanoid and humanoid.Health > 0 and root.Position.Y > greybox.DiveStartY then
 			local entry = services.TutorialService.diveEntryFor(player) or greybox.DiveEntry
 			local character = player.Character :: Model
+			services.AntiCheatService.expectTeleport(player)
 			character:PivotTo(CFrame.new(entry))
 		end
 	end)

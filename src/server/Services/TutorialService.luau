@@ -126,6 +126,7 @@ end
 local function teleport(player: Player, position: Vector3)
 	local character = player.Character
 	if character then
+		services.AntiCheatService.expectTeleport(player)
 		character:PivotTo(CFrame.new(position))
 	end
 end

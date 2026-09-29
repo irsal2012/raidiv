@@ -95,6 +95,13 @@ function AnalyticsService.economy(
 	end)
 end
 
+-- Anti-cheat flags ("speed", "teleport", "economy"). Review these before banning anyone.
+function AnalyticsService.exploitFlag(player: Player, kind: string)
+	safely(function()
+		RobloxAnalytics:LogCustomEvent(player, "ExploitFlag", 1, fields(kind))
+	end)
+end
+
 -- Robux Pearl packs. Logged as an economy source in the premium currency.
 function AnalyticsService.pearlsPurchased(player: Player, pearls: number, productId: number)
 	local data = services.PlayerDataService.get(player)

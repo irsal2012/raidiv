@@ -24,6 +24,8 @@ local TutorialConfig = require("../src/shared/Config/Tutorial")
 local Store = require("../src/shared/Logic/Store")
 local CosmeticsCatalog = require("../src/shared/Config/Cosmetics")
 local MonetizationConfig = require("../src/shared/Config/Monetization")
+local Movement = require("../src/shared/Logic/Movement")
+local AntiCheatConfig = require("../src/shared/Config/AntiCheat")
 
 local passed, failed = 0, 0
 
@@ -438,6 +440,27 @@ test("monetization config: ids default to 0 and bigger packs are better value", 
 	for _, item in CosmeticsCatalog do
 		expectEq(#item.color, 3)
 	end
+end)
+
+test("movement judge allows legit swims, flags speed hacks and teleports", function()
+	local function judge(distance: number, dt: number, speed: number)
+		return Movement.judge(
+			distance,
+			dt,
+			speed,
+			AntiCheatConfig.SpeedTolerance,
+			AntiCheatConfig.SlackStuds,
+			AntiCheatConfig.FlagrantFactor
+		)
+	end
+	-- Fastest legit mover: max fins, sprinting, empty bag.
+	local fastest = SwimMath.speed(Swim, Gear.valueAt("fins", Gear.MaxLevel) :: number, true, 0, 10)
+	expectEq(judge(fastest * 0.5, 0.5, fastest), "ok")
+	expectEq(judge(0, 0, fastest), "ok")
+	-- 2.5x speed hack over half a second.
+	expectEq(judge(fastest * 2.5 * 0.5, 0.5, fastest), "suspicious")
+	-- A 200-stud teleport.
+	expectEq(judge(200, 0.5, fastest), "flagrant")
 end)
 
 print(`{passed} passed, {failed} failed`)
