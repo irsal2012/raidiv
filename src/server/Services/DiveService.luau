@@ -121,6 +121,7 @@ local function startDive(player: Player)
 	sessions[player] = session
 	profile.stats.dives += 1
 	services.AnalyticsService.onboardingStep(player, "FirstDive")
+	services.TutorialService.onDiveStarted(player)
 
 	local character = player.Character
 	local head = character and character:FindFirstChild("Head")
@@ -252,6 +253,7 @@ function DiveService.endDive(player: Player, reason: "extracted" | "died" | "lef
 		services.CollectionService.record(player, session.carried)
 		profile.stats.extractions += 1
 		services.AnalyticsService.onboardingStep(player, "FirstExtraction")
+		services.TutorialService.onExtracted(player, #session.carried)
 		local count = #session.carried
 		notifyRemote:FireClient(
 			player,
@@ -259,6 +261,7 @@ function DiveService.endDive(player: Player, reason: "extracted" | "died" | "lef
 		)
 	elseif profile and reason == "died" then
 		profile.stats.deaths += 1
+		services.TutorialService.onDied(player)
 		notifyRemote:FireClient(player, "You didn't make it. Your loot is where you fell.")
 	end
 
@@ -402,7 +405,9 @@ function DiveService.start()
 		end
 		local root, humanoid = getBody(player)
 		if root and humanoid and humanoid.Health > 0 and root.Position.Y > greybox.DiveStartY then
-			(player.Character :: Model):PivotTo(CFrame.new(greybox.DiveEntry))
+			local entry = services.TutorialService.diveEntryFor(player) or greybox.DiveEntry
+			local character = player.Character :: Model
+			character:PivotTo(CFrame.new(entry))
 		end
 	end)
 

@@ -24,6 +24,7 @@ export type Profile = {
 	onboarding: { [string]: boolean }, -- onboarding funnel steps already logged
 	titles: { [string]: boolean }, -- earned titles (display comes with cosmetics)
 	collectionRewards: { [string]: boolean }, -- collection milestones already paid
+	tutorial: { step: string }, -- "" until first join; see Config/Tutorial
 }
 
 -- Server -> client every dive tick.

@@ -110,6 +110,14 @@ Tuning lives in `Config/Oxygen`, `Config/Swim`, `Config/Creatures`, `Config/Gear
 
 **Testing squads in Studio:** Test tab → Clients and Servers → 2 players → Start. Use the SQUAD button in one window to invite the other.
 
-## 6. Next after Phase 1
+## 6. Phase 3 progress (started 2026-09-29, ahead of the Phase 1 playtest, at the owner's request)
+
+| Item | Status |
+|---|---|
+| **FTUE flow** (doc/01 §4) | **Code written, not yet run in Studio.** New players spawn at a separate, creature-free **tutorial cove** (`TutorialService`, 300 studs south of the harbor) and grab 3 Glowing relics only they can take (230 Coins, enough for a first upgrade). A client-only scripted creature rushes them after relic 3, then they climb out, are teleported to the harbor, and are guided to sell → upgrade → visit their base → squad tip. Step rules are pure and unit-tested (`Logic/Tutorial.luau`); the step saves in `profile.tutorial`. There's an objective banner with **Skip**, and targets get highlights. Players with any extraction skip it. In Studio, set a boolean attribute `ForceTutorial` on Workspace to replay it. Shared geometry helpers moved to `server/Util/Geometry.luau`. |
+| Monetization, UI pass, style guide | Not started |
+| Art and audio (models, room modules, sounds, icon) | Needs a builder/artist |
+
+## 7. Next after Phase 1
 
 Phase 2 starts with the data layer (ProfileStore + versioned template + migrations), then the zone generator from room modules. Extend `tests/run.luau` with economy and receipt-idempotency tests before `MonetizationService` exists.

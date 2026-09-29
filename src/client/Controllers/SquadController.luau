@@ -74,6 +74,7 @@ function SquadController.start()
 
 	-- Open button, left edge below the Roblox menu buttons.
 	local openButton = button(gui, "SQUAD", BLUE, UDim2.fromOffset(16, 80), UDim2.fromOffset(110, 40))
+	openButton.Name = "SquadButton"
 
 	-- Member list under it.
 	local memberList = label(gui, "", UDim2.fromOffset(16, 128), UDim2.fromOffset(200, 20))

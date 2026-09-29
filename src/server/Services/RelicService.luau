@@ -30,6 +30,7 @@ type WorldRelic = {
 	relic: Types.RelicInstance,
 	part: BasePart,
 	slot: number?,
+	owner: number?, -- UserId; only they can take it (tutorial relics)
 }
 
 local RelicService = {}
@@ -59,6 +60,9 @@ local function tryPickup(player: Player, id: string)
 	if not entry or not services.DiveService.getSession(player) then
 		return
 	end
+	if entry.owner and entry.owner ~= player.UserId then
+		return
+	end
 	local character = player.Character
 	local root = character and character:FindFirstChild("HumanoidRootPart") :: BasePart?
 	if not root or (root.Position - entry.part.Position).Magnitude > PICKUP_RANGE then
@@ -76,9 +80,12 @@ local function tryPickup(player: Player, id: string)
 	local position = entry.part.Position
 	entry.part:Destroy()
 	services.CreatureService.emitNoise(position, Relics.Defs[entry.relic.relicKey].noise)
+	if entry.owner then
+		services.TutorialService.onTutorialRelicTaken(player)
+	end
 end
 
-local function spawnWorldRelic(relic: Types.RelicInstance, position: Vector3, slot: number?)
+local function spawnWorldRelic(relic: Types.RelicInstance, position: Vector3, slot: number?, owner: number?)
 	local def = Relics.Defs[relic.relicKey]
 
 	local part = Instance.new("Part")
@@ -101,8 +108,13 @@ local function spawnWorldRelic(relic: Types.RelicInstance, position: Vector3, sl
 		tryPickup(player, relic.id)
 	end)
 
+	if owner then
+		part:SetAttribute("TutorialFor", owner) -- the client highlights its own
+		prompt:SetAttribute("OwnerUserId", owner)
+	end
+
 	part.Parent = folder
-	worldRelics[relic.id] = { relic = relic, part = part, slot = slot }
+	worldRelics[relic.id] = { relic = relic, part = part, slot = slot, owner = owner }
 	if slot then
 		slotOccupant[slot] = relic.id
 	end
@@ -116,6 +128,21 @@ local function fillEmptySlots()
 		local relicKey, mutation = Loot.rollRelic(services.CurrentsService.relics(), rng)
 		if relicKey then
 			spawnWorldRelic(newRelic(relicKey, mutation), position, slot)
+		end
+	end
+end
+
+-- Spawns a relic only `ownerUserId` can take (tutorial relics).
+function RelicService.spawnOwned(relicKey: string, mutation: string?, position: Vector3, ownerUserId: number)
+	spawnWorldRelic(newRelic(relicKey, mutation), position, nil, ownerUserId)
+end
+
+-- Removes every world relic owned by `ownerUserId`.
+function RelicService.removeOwnedBy(ownerUserId: number)
+	for id, entry in worldRelics do
+		if entry.owner == ownerUserId then
+			entry.part:Destroy()
+			worldRelics[id] = nil
 		end
 	end
 end

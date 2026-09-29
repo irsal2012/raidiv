@@ -208,6 +208,12 @@ local function buildPlot(plot: Plot, owner: Player, profile: Types.Profile)
 	end
 end
 
+-- Center of the player's plot, or nil if they don't have one.
+function BaseService.plotCenter(player: Player): Vector3?
+	local plot = plotOf[player]
+	return plot and plot.center
+end
+
 local function onProfileLoaded(player: Player, profile: Types.Profile)
 	for _, plot in plots do
 		if not plot.owner then

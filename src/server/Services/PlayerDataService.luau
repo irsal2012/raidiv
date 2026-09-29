@@ -34,6 +34,7 @@ local TEMPLATE: Types.Profile = {
 	onboarding = {},
 	titles = {},
 	collectionRewards = {},
+	tutorial = { step = "" },
 }
 
 -- MIGRATIONS[n] upgrades saved data from version n to n + 1. Add one whenever the

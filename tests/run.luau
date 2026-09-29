@@ -19,6 +19,8 @@ local Currents = require("../src/shared/Logic/Currents")
 local CurrentsList = require("../src/shared/Config/Currents")
 local Collection = require("../src/shared/Logic/Collection")
 local CollectionMilestones = require("../src/shared/Config/Collection")
+local Tutorial = require("../src/shared/Logic/Tutorial")
+local TutorialConfig = require("../src/shared/Config/Tutorial")
 
 local passed, failed = 0, 0
 
@@ -342,6 +344,39 @@ test("collection milestones pay once and in order", function()
 	expectEq(#reached, 2)
 	expectEq(reached[1].id, "half")
 	expectEq(reached[2].id, "complete")
+end)
+
+test("tutorial walks the happy path in order", function()
+	local n = TutorialConfig.RelicCount
+	local step = Tutorial.initialStep(0)
+	expectEq(step, "dive")
+	step = Tutorial.next(step, "diveStarted", nil, n)
+	expectEq(step, "relics")
+	step = Tutorial.next(step, "relicTaken", 2, n)
+	expectEq(step, "relics")
+	step = Tutorial.next(step, "relicTaken", 3, n)
+	expectEq(step, "escape")
+	step = Tutorial.next(step, "extracted", 3, n)
+	expectEq(step, "sell")
+	for _, pair in { { "sold", "upgrade" }, { "upgraded", "base" }, { "reachedBase", "squad" }, { "squadTip", "done" } } do
+		step = Tutorial.next(step, pair[1] :: any, nil, n)
+		expectEq(step, pair[2])
+	end
+	-- Every step the machine reaches is a configured step.
+	expectEq(TutorialConfig.Steps[#TutorialConfig.Steps], "done")
+end)
+
+test("tutorial ignores out-of-order events, handles empty extraction and skip", function()
+	local n = TutorialConfig.RelicCount
+	expectEq(Tutorial.next("dive", "sold", nil, n), "dive")
+	expectEq(Tutorial.next("escape", "extracted", 0, n), "relics")
+	expectEq(Tutorial.next("relics", "extracted", 1, n), "sell")
+	expectEq(Tutorial.next("upgrade", "skip", nil, n), "done")
+	expectEq(Tutorial.next("done", "diveStarted", nil, n), "done")
+	expectEq(Tutorial.initialStep(4), "done")
+	for _, step in TutorialConfig.Steps do
+		assert(step == "done" or TutorialConfig.Text[step], `step {step} has no banner text`)
+	end
 end)
 
 print(`{passed} passed, {failed} failed`)

@@ -16,12 +16,15 @@
 --   SquadState           server -> client  (Types.SquadState)
 --   SquadInviteReceived  server -> client  (fromUserId: number, fromName: string)
 --   Ping                 client -> server  (position: Vector3)
+--   PingShown            server -> client  (position: Vector3, kind: Types.PingKind, label: string, fromName: string)
 --   DropRelic            client -> server  ()
 --   RequestCollection    client -> server  ()
 --   CollectionState      server -> client  (Types.CollectionState)
 --   OpenDisplayPicker    server -> client  (slot: string, items: { Types.DisplayItem })
 --   ChooseDisplay        client -> server  (slot: string, relicId: string)
---   PingShown            server -> client  (position: Vector3, kind: Types.PingKind, label: string, fromName: string)
+--   TutorialState        server -> client  (step: string, relicsTaken: number)
+--   TutorialSkip         client -> server  ()
+--   TutorialScare        server -> client  ()
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -47,6 +50,9 @@ local NAMES = {
 	"CollectionState",
 	"OpenDisplayPicker",
 	"ChooseDisplay",
+	"TutorialState",
+	"TutorialSkip",
+	"TutorialScare",
 }
 local FOLDER_NAME = "Remotes"
 

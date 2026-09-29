@@ -19,12 +19,13 @@ local Shared = ReplicatedStorage.Shared
 local ZoneConfig = require(Shared.Config.Zone)
 local Loot = require(Shared.Logic.Loot)
 local ZoneLayout = require(Shared.Logic.ZoneLayout)
+local Geometry = require(script.Parent.Parent.Util.Geometry)
 
 local ROOM_SPACING = 50 -- 48 interior + 2 wall
 local ROOM_HALF = 24 -- interior half-width
 local ROOM_HEIGHT = 24
 local ROOM_Y = -40
-local WALL = 2
+local WALL = Geometry.WALL
 local DOOR = 12
 local SHAFT = 16
 
@@ -38,7 +39,7 @@ local SPAWN_OFFSETS = {
 	Vector3.new(4, -10, 18),
 }
 
-local FLAT = CFrame.Angles(math.rad(90), 0, 0)
+local FLAT = Geometry.FLAT
 
 local GreyboxService = {
 	SurfaceY = 0,
@@ -47,6 +48,7 @@ local GreyboxService = {
 	-- A diving player above this height has climbed out: extraction.
 	ExtractAboveY = 2,
 	DiveEntry = Vector3.new(0, -6, 0),
+	BoatSpawn = Vector3.new(0, 5, -20),
 	Seed = 0,
 	CreatureSpawnRoom = "",
 	ZoneFolder = nil :: Folder?,
@@ -118,41 +120,8 @@ function GreyboxService.lurkerSpots(): { LurkerSpot }
 	return lurkerSpots
 end
 
-local function block(parent: Instance, cframe: CFrame, size: Vector3): Part
-	local part = Instance.new("Part")
-	part.Anchored = true
-	part.Size = size
-	part.CFrame = cframe
-	part.Material = Enum.Material.Slate
-	part.Color = Color3.fromRGB(90, 96, 100)
-	part.TopSurface = Enum.SurfaceType.Smooth
-	part.BottomSurface = Enum.SurfaceType.Smooth
-	part.Parent = parent
-	return part
-end
-
--- Flat panel: local X = width, local Y = height, local Z = thickness. Optional centered hole.
-local function panel(
-	parent: Instance,
-	cframe: CFrame,
-	width: number,
-	height: number,
-	holeWidth: number,
-	holeHeight: number
-)
-	if holeWidth <= 0 then
-		block(parent, cframe, Vector3.new(width, height, WALL))
-		return
-	end
-	local sideWidth = (width - holeWidth) / 2
-	local capHeight = (height - holeHeight) / 2
-	local sideX = (holeWidth + sideWidth) / 2
-	local capY = (holeHeight + capHeight) / 2
-	block(parent, cframe * CFrame.new(-sideX, 0, 0), Vector3.new(sideWidth, height, WALL))
-	block(parent, cframe * CFrame.new(sideX, 0, 0), Vector3.new(sideWidth, height, WALL))
-	block(parent, cframe * CFrame.new(0, capY, 0), Vector3.new(holeWidth, capHeight, WALL))
-	block(parent, cframe * CFrame.new(0, -capY, 0), Vector3.new(holeWidth, capHeight, WALL))
-end
+local block = Geometry.block
+local panel = Geometry.panel
 
 -- Grey-box "room modules": interior props that break line of sight so a diver can hide from
 -- a lamp-hunting creature. Props sit on the diagonals, clear of the center lines and spawns.
