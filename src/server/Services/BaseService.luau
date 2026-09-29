@@ -150,6 +150,17 @@ local function buildPlot(plot: Plot, owner: Player, profile: Types.Profile)
 	sign.CFrame = CFrame.new(plot.center + Vector3.new(0, 5, -BaseConfig.PlotSize / 2 + 1))
 	sign.Color = Color3.fromRGB(40, 50, 60)
 	sign.Parent = model
+	-- Two posts from the floor up to the sign.
+	for _, side in { -1, 1 } do
+		local post = Instance.new("Part")
+		post.Name = "SignPost"
+		post.Anchored = true
+		post.Size = Vector3.new(0.6, 5, 0.6)
+		post.CFrame = sign.CFrame * CFrame.new(side * 6, -2.5, 0.6)
+		post.Material = Enum.Material.WoodPlanks
+		post.Color = Color3.fromRGB(95, 75, 55)
+		post.Parent = model
+	end
 	local signGui = Instance.new("SurfaceGui")
 	signGui.Face = Enum.NormalId.Front -- faces -Z, toward the dock
 	signGui.PixelsPerStud = 40
