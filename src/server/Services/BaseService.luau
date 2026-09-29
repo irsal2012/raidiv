@@ -76,6 +76,7 @@ local function renderSlot(plot: Plot, slot: string, relic: Types.RelicInstance?)
 	display.Anchored = true
 	display.CanCollide = false
 	display.Size = Vector3.one * (1 + def.weight * 0.3)
+	display.Shape = (Enum.PartType :: any)[def.shape or "Block"]
 	display.CFrame = CFrame.new(pedestal.Position + Vector3.new(0, pedestal.Size.Y / 2 + display.Size.Y / 2 + 0.2, 0))
 	display.Color = RARITY_COLORS[def.rarity]
 	display.Material = if relic.mutation then Enum.Material.Neon else Enum.Material.SmoothPlastic

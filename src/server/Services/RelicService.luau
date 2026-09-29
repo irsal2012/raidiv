@@ -86,6 +86,7 @@ local function spawnWorldRelic(relic: Types.RelicInstance, position: Vector3, sl
 	local part = Instance.new("Part")
 	part.Name = relic.relicKey
 	part.Size = Vector3.one * (1 + def.weight * 0.35)
+	part.Shape = (Enum.PartType :: any)[def.shape or "Block"]
 	part.Anchored = true
 	part.CanCollide = false
 	part.Color = RARITY_COLORS[def.rarity]

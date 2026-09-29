@@ -463,6 +463,43 @@ test("movement judge allows legit swims, flags speed hacks and teleports", funct
 	expectEq(judge(200, 0.5, fastest), "flagrant")
 end)
 
+test("relic set: 30 relics, saved keys kept, rarity tiers never overlap in value", function()
+	local count = 0
+	for _ in Relics.Defs do
+		count += 1
+	end
+	expectEq(count, 30)
+	-- Keys already in players' saves must never disappear.
+	for _, key in
+		{
+			"RustyCompass",
+			"CrackedTeacup",
+			"BrassBell",
+			"HarborLantern",
+			"SilverChalice",
+			"CaptainsSextant",
+			"DrownedCrown",
+		}
+	do
+		assert(Relics.Defs[key] ~= nil, `saved relic key {key} was removed`)
+	end
+	for _, key in TutorialConfig.RelicKeys do
+		assert(Relics.Defs[key] ~= nil, `tutorial relic {key} missing`)
+	end
+	local validShapes = { Block = true, Ball = true, Cylinder = true, Wedge = true }
+	local low, high = {}, {}
+	for key, def in Relics.Defs do
+		assert(def.shape == nil or validShapes[def.shape], `{key} has invalid shape`)
+		assert(def.weight >= 1 and def.noise > 0 and def.value > 0, `{key} has bad numbers`)
+		low[def.rarity] = math.min(low[def.rarity] or math.huge, def.value)
+		high[def.rarity] = math.max(high[def.rarity] or 0, def.value)
+	end
+	for i = 2, #Relics.RarityOrder do
+		local lower, upper = Relics.RarityOrder[i - 1], Relics.RarityOrder[i]
+		assert(low[upper] > high[lower], `{upper} relics should all be worth more than {lower} ones`)
+	end
+end)
+
 print(`{passed} passed, {failed} failed`)
 if failed > 0 then
 	process.exit(1)
