@@ -116,17 +116,17 @@ function SquadController.start()
 	layout.Parent = list
 
 	-- Invite Roblox friends who aren't in this server (Roblox's own invite window).
-	local invite =
+	local inviteFriends =
 		button(panel, "Invite friends to Deep Salvage", GREEN, UDim2.new(0, 16, 1, -96), UDim2.new(1, -32, 0, 40))
 	local inviteSentRemote = Remotes.get("InviteSent")
-	invite.Activated:Connect(function()
+	inviteFriends.Activated:Connect(function()
 		local ok, canInvite = pcall(SocialService.CanSendGameInviteAsync, SocialService, localPlayer)
 		if ok and canInvite then
 			SocialService:PromptGameInvite(localPlayer)
 		else
-			invite.Text = "Invites unavailable here"
+			inviteFriends.Text = "Invites unavailable here"
 			task.delay(2, function()
-				invite.Text = "Invite friends to Deep Salvage"
+				inviteFriends.Text = "Invite friends to Deep Salvage"
 			end)
 		end
 	end)
