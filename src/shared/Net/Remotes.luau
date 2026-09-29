@@ -19,6 +19,8 @@
 --   DropRelic            client -> server  ()
 --   RequestCollection    client -> server  ()
 --   CollectionState      server -> client  (Types.CollectionState)
+--   OpenDisplayPicker    server -> client  (slot: string, items: { Types.DisplayItem })
+--   ChooseDisplay        client -> server  (slot: string, relicId: string)
 --   PingShown            server -> client  (position: Vector3, kind: Types.PingKind, label: string, fromName: string)
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -43,6 +45,8 @@ local NAMES = {
 	"DropRelic",
 	"RequestCollection",
 	"CollectionState",
+	"OpenDisplayPicker",
+	"ChooseDisplay",
 }
 local FOLDER_NAME = "Remotes"
 

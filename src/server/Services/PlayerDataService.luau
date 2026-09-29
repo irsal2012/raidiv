@@ -45,6 +45,7 @@ local PlayerDataService = {}
 local services: any
 local store = ProfileStore.New(STORE_NAME, TEMPLATE)
 local profiles: { [Player]: any } = {}
+local loadedCallbacks: { (Player, Types.Profile) -> () } = {}
 
 local function migrate(data: any)
 	while data.version < CURRENT_VERSION do
@@ -94,6 +95,14 @@ local function onPlayerAdded(player: Player)
 	profiles[player] = profile
 	createLeaderstats(player, profile.Data.coins)
 	services.AnalyticsService.onboardingStep(player, "Joined")
+	for _, callback in loadedCallbacks do
+		task.spawn(callback, player, profile.Data)
+	end
+end
+
+-- Runs `callback(player, data)` whenever a player's profile finishes loading. Register in init.
+function PlayerDataService.onProfileLoaded(callback: (Player, Types.Profile) -> ())
+	table.insert(loadedCallbacks, callback)
 end
 
 function PlayerDataService.get(player: Player): Types.Profile?

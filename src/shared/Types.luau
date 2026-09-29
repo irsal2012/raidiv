@@ -16,7 +16,7 @@ export type Profile = {
 	xp: number,
 	gear: { tank: number, fins: number, lamp: number, bag: number, sonar: number, suit: number },
 	inventory: { RelicInstance },
-	base: { displays: { [string]: string } }, -- slotId -> relic instance id
+	base: { displays: { [string]: RelicInstance } }, -- slot ("1"..) -> displayed relic; not in inventory
 	collection: { [string]: boolean }, -- discovered relicKeys
 	cosmetics: { owned: { [string]: boolean }, equipped: { [string]: string } },
 	purchases: { [string]: boolean }, -- processed receipt IDs
@@ -54,6 +54,9 @@ export type CollectionState = {
 	collection: { [string]: boolean },
 	claimed: { [string]: boolean },
 }
+
+-- One unsold relic offered in the base display picker.
+export type DisplayItem = { id: string, name: string, rarity: string }
 
 export type PingKind = "relic" | "danger" | "look"
 
