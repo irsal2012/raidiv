@@ -28,6 +28,19 @@ Relics.RaritySpawnWeights = table.freeze({
 	Legendary = 1,
 } :: { [Rarity]: number })
 
+-- Soft glow around world relics, in studs. Short on purpose: the lamp should still matter
+-- from across a room (doc/07 §1), but rarer loot draws the eye a little farther.
+Relics.GlowRange = table.freeze({
+	Common = 4,
+	Uncommon = 5,
+	Rare = 6,
+	Epic = 8,
+	Legendary = 10,
+} :: { [Rarity]: number })
+Relics.GlowBrightness = 0.8
+-- Mutated relics glow brighter and farther.
+Relics.MutationGlowBonus = 3
+
 Relics.RarityOrder = table.freeze({ "Common", "Uncommon", "Rare", "Epic", "Legendary" } :: { Rarity })
 
 -- Chance any spawned relic rolls a mutation (design: ~1-3%).

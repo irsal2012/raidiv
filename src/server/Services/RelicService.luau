@@ -93,6 +93,13 @@ local function spawnWorldRelic(relic: Types.RelicInstance, position: Vector3, sl
 	part.Material = if relic.mutation then Enum.Material.Neon else Enum.Material.SmoothPlastic
 	part.Position = position
 
+	local glow = Instance.new("PointLight")
+	glow.Color = part.Color
+	glow.Range = Relics.GlowRange[def.rarity] + (if relic.mutation then Relics.MutationGlowBonus else 0)
+	glow.Brightness = Relics.GlowBrightness * (if relic.mutation then 2 else 1)
+	glow.Shadows = false
+	glow.Parent = part
+
 	local prompt = Instance.new("ProximityPrompt")
 	prompt.ActionText = "Take"
 	prompt.ObjectText = if relic.mutation then `{relic.mutation} {def.displayName}` else def.displayName

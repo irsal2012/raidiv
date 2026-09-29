@@ -500,6 +500,17 @@ test("relic set: 30 relics, saved keys kept, rarity tiers never overlap in value
 	end
 end)
 
+test("rarer relics glow at least as far, and within a light's range", function()
+	local previous = 0
+	for _, rarity in Relics.RarityOrder do
+		local range = Relics.GlowRange[rarity]
+		assert(range ~= nil, `no glow range for {rarity}`)
+		assert(range >= previous, `{rarity} glows less than the tier below it`)
+		assert(range + Relics.MutationGlowBonus <= 60, `{rarity} glow exceeds PointLight.Range cap`)
+		previous = range
+	end
+end)
+
 print(`{passed} passed, {failed} failed`)
 if failed > 0 then
 	process.exit(1)
