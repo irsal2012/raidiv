@@ -10,6 +10,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
 
 local Shared = ReplicatedStorage.Shared
+local Palette = require(Shared.Config.Palette)
 local Types = require(Shared.Types)
 local BaseConfig = require(Shared.Config.Base)
 local Monetization = require(Shared.Config.Monetization)
@@ -17,13 +18,7 @@ local Relics = require(Shared.Config.Relics)
 local Remotes = require(Shared.Net.Remotes)
 local RateLimiter = require(script.Parent.Parent.Util.RateLimiter)
 
-local RARITY_COLORS: { [string]: Color3 } = {
-	Common = Color3.fromRGB(170, 170, 170),
-	Uncommon = Color3.fromRGB(85, 200, 110),
-	Rare = Color3.fromRGB(70, 140, 255),
-	Epic = Color3.fromRGB(170, 90, 255),
-	Legendary = Color3.fromRGB(255, 190, 40),
-}
+local RARITY_COLORS = Palette.Rarity
 
 type Plot = {
 	index: number,

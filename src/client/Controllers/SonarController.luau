@@ -8,17 +8,12 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
+local Palette = require(Shared:WaitForChild("Config"):WaitForChild("Palette"))
 local Types = require(Shared:WaitForChild("Types"))
 local SonarConfig = require(Shared:WaitForChild("Config"):WaitForChild("Sonar"))
 local Remotes = require(Shared:WaitForChild("Net"):WaitForChild("Remotes"))
 
-local RARITY_COLORS: { [string]: Color3 } = {
-	Common = Color3.fromRGB(170, 170, 170),
-	Uncommon = Color3.fromRGB(85, 200, 110),
-	Rare = Color3.fromRGB(70, 140, 255),
-	Epic = Color3.fromRGB(170, 90, 255),
-	Legendary = Color3.fromRGB(255, 190, 40),
-}
+local RARITY_COLORS = Palette.Rarity
 
 local SonarController = {}
 

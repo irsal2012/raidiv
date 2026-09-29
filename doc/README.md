@@ -12,6 +12,7 @@ A co-op underwater extraction game for players 13+. Squads of 1–4 dive into a 
 | `04-monetization-liveops.md` | Revenue design, pricing, economy, update cadence |
 | `05-marketing-launch.md` | Soft launch, growth, creators, community, KPIs |
 | `06-build-plan.md` | Repo scaffold status, decisions, Phase 1 task breakdown, open questions |
+| `07-style-guide.md` | Mood, colour, room-module builder spec, asset list, UI rules |
 
 ## Guiding principles
 

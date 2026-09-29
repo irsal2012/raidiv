@@ -6,6 +6,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
+local Palette = require(Shared:WaitForChild("Config"):WaitForChild("Palette"))
 local Types = require(Shared:WaitForChild("Types"))
 local Config = Shared:WaitForChild("Config")
 local Relics = require(Config:WaitForChild("Relics"))
@@ -13,13 +14,7 @@ local Milestones = require(Config:WaitForChild("Collection"))
 local Collection = require(Shared:WaitForChild("Logic"):WaitForChild("Collection"))
 local Remotes = require(Shared:WaitForChild("Net"):WaitForChild("Remotes"))
 
-local RARITY_COLORS: { [string]: Color3 } = {
-	Common = Color3.fromRGB(170, 170, 170),
-	Uncommon = Color3.fromRGB(85, 200, 110),
-	Rare = Color3.fromRGB(70, 140, 255),
-	Epic = Color3.fromRGB(170, 90, 255),
-	Legendary = Color3.fromRGB(255, 190, 40),
-}
+local RARITY_COLORS = Palette.Rarity
 local UNFOUND = Color3.fromRGB(60, 65, 70)
 local PANEL = Color3.fromRGB(15, 22, 30)
 

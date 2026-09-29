@@ -9,6 +9,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
 
 local Shared = ReplicatedStorage.Shared
+local Palette = require(Shared.Config.Palette)
 local Types = require(Shared.Types)
 local Relics = require(Shared.Config.Relics)
 local Loot = require(Shared.Logic.Loot)
@@ -18,13 +19,7 @@ local Remotes = require(Shared.Net.Remotes)
 local PICKUP_RANGE = 14
 local RESPAWN_SECONDS = 60
 
-local RARITY_COLORS: { [string]: Color3 } = {
-	Common = Color3.fromRGB(170, 170, 170),
-	Uncommon = Color3.fromRGB(85, 200, 110),
-	Rare = Color3.fromRGB(70, 140, 255),
-	Epic = Color3.fromRGB(170, 90, 255),
-	Legendary = Color3.fromRGB(255, 190, 40),
-}
+local RARITY_COLORS = Palette.Rarity
 
 type WorldRelic = {
 	relic: Types.RelicInstance,
