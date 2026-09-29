@@ -2,7 +2,7 @@
 
 A co-op underwater extraction game for Roblox (13+). Squads of 1–4 dive into a flooded, sealed-off city, grab valuable relics, and try to get back to the surface before their oxygen runs out or something down there finds them.
 
-**Status:** Phase 1 prototype, which is a grey-box loop built in code. It builds, and lint, format, tests and strict type checks pass in CI. It has not been playtested in Studio yet. See [doc/06-build-plan.md](doc/06-build-plan.md).
+**Status:** Grey-box game with Phase 1–3 systems in code: a seeded zone generator, 3 creatures, squads with revive and pings, saving, a collection book, player bases, daily currents, a tutorial, sonar, a shop with safe Robux handling, anti-cheat flags, and audio plumbing. Lint, format, 35 unit tests and strict type checks pass in CI. Most of it has **not yet been playtested** in Studio, and the art is still grey boxes. See [doc/06-build-plan.md](doc/06-build-plan.md).
 
 ## Quick start
 
@@ -31,10 +31,15 @@ Press **Play**. For co-op, use **Test → Clients and Servers** with 2–4 playe
 |---|---|---|---|
 | Dive | DIVE button | DIVE button | DIVE button |
 | Swim | WASD + camera, Space to rise | Left stick | Thumbstick |
+| Take relic / use counter, locker, pedestal | Hold E | Hold X | Tap prompt |
 | Sprint (hold) | Shift | L3 | Sprint button |
 | Toggle lamp | F | Y | Lamp button |
+| Ping for squad | G | R1 | Ping button |
+| Drop heaviest relic | X | B | Drop button |
+| Hide UI (clip mode) | H | | |
+| **Studio only:** +5000 Coins, +500 Pearls | P | | |
 
-Climb out of the shaft to extract. Sell relics at the gold counter by the boat.
+Climb the yellow ladder out of the shaft to extract. Sell at the gold counter, upgrade at the blue locker, and use the SQUAD, BOOK and SHOP buttons at the top left. To replay the new-player tutorial in Studio, add a boolean attribute `ForceTutorial` to Workspace. To reproduce a zone layout, add a number attribute `ZoneSeed`.
 
 ## Development
 
@@ -54,15 +59,16 @@ Recommended VS Code extensions: **Luau Language Server** (JohnnyMorganz.luau-lsp
 ```
 src/
 ├── shared/      → ReplicatedStorage.Shared
-│   ├── Config/    All tuning numbers: relics, gear, oxygen, swim, creatures
+│   ├── Config/    All tuning numbers and content: relics, gear, creatures, zone, currents, shop, audio ids
 │   ├── Logic/     Pure game math, no Roblox APIs, so it's unit-testable
 │   ├── Net/       RemoteEvent registry
 │   └── Types.luau Profile and dive state types
 ├── server/      → ServerScriptService.Server
-│   ├── Services/  Greybox, Dive, Relic, Creature, Economy, PlayerData
-│   └── Util/      Rate limiter
+│   ├── Services/  One module per system (Dive, Creature, Squad, Base, Tutorial, Monetization, ...)
+│   ├── Util/      Rate limiter, grey-box geometry
+│   └── Vendor/    ProfileStore (official source, pinned)
 └── client/      → StarterPlayerScripts.Client
-    └── Controllers/ HUD, sprint, lamp input
+    └── Controllers/ HUD and panels, input, audio, tutorial, UI scaling
 tests/           Lune test runner
 doc/             Design docs and build plan
 ```
@@ -85,3 +91,5 @@ doc/             Design docs and build plan
 | [04 Monetization & live ops](doc/04-monetization-liveops.md) | Revenue, pricing, economy, event calendar |
 | [05 Marketing & launch](doc/05-marketing-launch.md) | Soft launch, creators, KPIs |
 | [06 Build plan](doc/06-build-plan.md) | Current status, decisions, open questions |
+| [07 Style guide](doc/07-style-guide.md) | Mood, colour, room-module builder spec, UI rules |
+| [08 Store page](doc/08-store-page.md) | Store description, thumbnails brief, pre-launch checklist |
