@@ -17,6 +17,8 @@ local Squads = require("../src/shared/Logic/Squads")
 local ZoneLayout = require("../src/shared/Logic/ZoneLayout")
 local Currents = require("../src/shared/Logic/Currents")
 local CurrentsList = require("../src/shared/Config/Currents")
+local Collection = require("../src/shared/Logic/Collection")
+local CollectionMilestones = require("../src/shared/Config/Collection")
 
 local passed, failed = 0, 0
 
@@ -308,6 +310,38 @@ test("every current has a name, description and at least one effect", function()
 			+ (current.sellMultiplier and 1 or 0)
 		assert(effects >= 1, `{current.id} has no effect`)
 	end
+end)
+
+test("collection records base and mutated finds once", function()
+	local book = {}
+	local added = Collection.record(book, {
+		{ relicKey = "BrassBell" },
+		{ relicKey = "BrassBell", mutation = "Gilded" },
+		{ relicKey = "BrassBell" },
+	})
+	expectEq(table.concat(added, ","), "BrassBell,BrassBell#Gilded")
+	expectEq(#Collection.record(book, { { relicKey = "BrassBell", mutation = "Gilded" } }), 0)
+	local found, total, mutations = Collection.progress(Relics, book)
+	expectEq(found, 1)
+	local defs = 0
+	for _ in Relics.Defs do
+		defs += 1
+	end
+	expectEq(total, defs)
+	expectEq(mutations, 1)
+end)
+
+test("collection milestones pay once and in order", function()
+	local claimed = {}
+	local reached = Collection.newMilestones(CollectionMilestones, 1, 7, 1, claimed)
+	expectEq(#reached, 1)
+	expectEq(reached[1].id, "firstMutation")
+	claimed.firstMutation = true
+	expectEq(#Collection.newMilestones(CollectionMilestones, 3, 7, 1, claimed), 0) -- 3/7 < half
+	reached = Collection.newMilestones(CollectionMilestones, 7, 7, 1, claimed)
+	expectEq(#reached, 2)
+	expectEq(reached[1].id, "half")
+	expectEq(reached[2].id, "complete")
 end)
 
 print(`{passed} passed, {failed} failed`)

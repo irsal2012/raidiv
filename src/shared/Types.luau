@@ -22,6 +22,8 @@ export type Profile = {
 	purchases: { [string]: boolean }, -- processed receipt IDs
 	stats: { dives: number, extractions: number, deaths: number },
 	onboarding: { [string]: boolean }, -- onboarding funnel steps already logged
+	titles: { [string]: boolean }, -- earned titles (display comes with cosmetics)
+	collectionRewards: { [string]: boolean }, -- collection milestones already paid
 }
 
 -- Server -> client every dive tick.
@@ -45,6 +47,12 @@ export type ProfileState = {
 -- Server -> client whenever squad membership changes. Leader first.
 export type SquadState = {
 	members: { { userId: number, name: string } },
+}
+
+-- Server -> client when the collection book opens or changes.
+export type CollectionState = {
+	collection: { [string]: boolean },
+	claimed: { [string]: boolean },
 }
 
 export type PingKind = "relic" | "danger" | "look"

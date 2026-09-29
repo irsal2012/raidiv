@@ -32,6 +32,8 @@ local TEMPLATE: Types.Profile = {
 	purchases = {},
 	stats = { dives = 0, extractions = 0, deaths = 0 },
 	onboarding = {},
+	titles = {},
+	collectionRewards = {},
 }
 
 -- MIGRATIONS[n] upgrades saved data from version n to n + 1. Add one whenever the

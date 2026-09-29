@@ -248,8 +248,8 @@ function DiveService.endDive(player: Player, reason: "extracted" | "died" | "lef
 	if profile and reason == "extracted" then
 		for _, relic in session.carried do
 			table.insert(profile.inventory, relic)
-			profile.collection[relic.relicKey] = true
 		end
+		services.CollectionService.record(player, session.carried)
 		profile.stats.extractions += 1
 		services.AnalyticsService.onboardingStep(player, "FirstExtraction")
 		local count = #session.carried
