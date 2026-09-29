@@ -11,7 +11,6 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage.Shared
 local Types = require(Shared.Types)
 local Gear = require(Shared.Config.Gear)
-local OxygenConfig = require(Shared.Config.Oxygen)
 local Relics = require(Shared.Config.Relics)
 local SquadConfig = require(Shared.Config.Squad)
 local SwimConfig = require(Shared.Config.Swim)
@@ -355,7 +354,8 @@ local function tick(dt: number)
 			continue
 		end
 
-		session.oxygen = OxygenMath.step(OxygenConfig, session.oxygen, dt, session.sprinting, session.weight)
+		session.oxygen =
+			OxygenMath.step(services.CurrentsService.oxygen(), session.oxygen, dt, session.sprinting, session.weight)
 		humanoid.WalkSpeed =
 			SwimMath.speed(SwimConfig, session.baseSpeed, session.sprinting, session.weight, session.capacity)
 		if session.sprinting then

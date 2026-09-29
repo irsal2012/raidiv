@@ -15,6 +15,8 @@ local SwimMath = require("../src/shared/Logic/SwimMath")
 local Upgrade = require("../src/shared/Logic/Upgrade")
 local Squads = require("../src/shared/Logic/Squads")
 local ZoneLayout = require("../src/shared/Logic/ZoneLayout")
+local Currents = require("../src/shared/Logic/Currents")
+local CurrentsList = require("../src/shared/Config/Currents")
 
 local passed, failed = 0, 0
 
@@ -269,6 +271,42 @@ test("zone layouts are valid for many seeds", function()
 		-- A tree has roomCount - 1 doors; loops add up to extraDoors more.
 		local doors = #layout.edges
 		assert(doors >= 9 and doors <= 11, `seed {seed}: {doors} doors`)
+	end
+end)
+
+test("daily current rotates with the seed and handles negative seeds", function()
+	expectEq(Currents.forSeed(CurrentsList, 0).id, CurrentsList[1].id)
+	expectEq(Currents.forSeed(CurrentsList, 1).id, CurrentsList[2].id)
+	expectEq(Currents.forSeed(CurrentsList, #CurrentsList).id, CurrentsList[1].id)
+	assert(Currents.forSeed(CurrentsList, -3) ~= nil, "negative seed should still pick a current")
+end)
+
+test("currents modify copies of configs, not the originals", function()
+	local rich = CurrentsList[1]
+	local modified = Currents.relics(Relics, rich)
+	expectEq(modified.RaritySpawnWeights.Rare, Relics.RaritySpawnWeights.Rare * 2)
+	expectEq(modified.RaritySpawnWeights.Common, Relics.RaritySpawnWeights.Common)
+	expectEq(modified.MutationChance, Relics.MutationChance)
+	expectEq(modified.Defs, Relics.Defs)
+
+	local glowing = CurrentsList[2]
+	expectNear(Currents.relics(Relics, glowing).MutationChance, Relics.MutationChance * 3)
+	expectNear(Currents.oxygen(Oxygen, CurrentsList[3]).BaseDrainPerSecond, Oxygen.BaseDrainPerSecond * 0.85)
+	expectEq(Currents.oxygen(Oxygen, rich).BaseDrainPerSecond, Oxygen.BaseDrainPerSecond)
+	-- Loot rolls still work on a modified config.
+	local key = Loot.rollRelic(modified, seeded(3))
+	assert(key ~= nil, "roll on modified config")
+end)
+
+test("every current has a name, description and at least one effect", function()
+	for _, current in CurrentsList do
+		assert(current.name ~= "" and current.description ~= "", `{current.id} missing text`)
+		local effects = (current.rarityMultipliers and 1 or 0)
+			+ (current.mutationMultiplier and 1 or 0)
+			+ (current.oxygenDrainMultiplier and 1 or 0)
+			+ (current.hearingMultiplier and 1 or 0)
+			+ (current.sellMultiplier and 1 or 0)
+		assert(effects >= 1, `{current.id} has no effect`)
 	end
 end)
 

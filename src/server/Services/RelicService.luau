@@ -113,7 +113,7 @@ local function fillEmptySlots()
 		if slotOccupant[slot] then
 			continue
 		end
-		local relicKey, mutation = Loot.rollRelic(Relics, rng)
+		local relicKey, mutation = Loot.rollRelic(services.CurrentsService.relics(), rng)
 		if relicKey then
 			spawnWorldRelic(newRelic(relicKey, mutation), position, slot)
 		end

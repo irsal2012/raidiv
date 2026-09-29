@@ -455,7 +455,9 @@ function CreatureService.emitNoise(position: Vector3, radius: number)
 		if creature.kind == "Warden" then
 			continue
 		end
-		local hearing = radius * creature.config.hearingMultiplier
+		local hearing = radius
+			* creature.config.hearingMultiplier
+			* (services.CurrentsService.current().hearingMultiplier or 1)
 		local distance = (creature.part.Position - position).Magnitude
 		if creature.kind == "Drifter" then
 			if creature.state == "Chase" or distance > hearing then

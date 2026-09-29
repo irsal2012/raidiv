@@ -33,6 +33,7 @@ local function sellAll(player: Player, counter: BasePart)
 	for _, relic in profile.inventory do
 		total += Loot.sellValue(Relics, relic.relicKey, relic.mutation)
 	end
+	total = math.floor(total * (services.CurrentsService.current().sellMultiplier or 1))
 	local count = #profile.inventory
 	table.clear(profile.inventory)
 	services.PlayerDataService.addCoins(player, total)
