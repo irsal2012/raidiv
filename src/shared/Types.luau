@@ -59,6 +59,8 @@ export type CollectionState = {
 -- One unsold relic offered in the base display picker.
 export type DisplayItem = { id: string, name: string, rarity: string }
 
+export type SonarHit = { position: Vector3, rarity: string }
+
 export type PingKind = "relic" | "danger" | "look"
 
 return nil

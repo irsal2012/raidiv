@@ -179,8 +179,9 @@ test("upgrade check covers ok, broke, maxed and unknown tracks", function()
 	expectEq(result, "not_enough_coins")
 	expectEq(cost, 250)
 	expectEq((Upgrade.check(Gear, { tank = Gear.MaxLevel }, 1e9, "tank")), "max_level")
-	-- Not sold yet, and not a track at all.
-	expectEq((Upgrade.check(Gear, levels, 1e9, "sonar")), "unknown_track")
+	-- Sonar starts unowned (level 0) and costs its first rung; the suit isn't sold yet.
+	expectEq((Upgrade.check(Gear, levels, 400, "sonar")), "ok")
+	expectEq((Upgrade.check(Gear, levels, 1e9, "suit")), "unknown_track")
 	expectEq((Upgrade.check(Gear, levels, 1e9, "rocketboots")), "unknown_track")
 end)
 

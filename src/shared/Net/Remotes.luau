@@ -25,6 +25,7 @@
 --   TutorialState        server -> client  (step: string, relicsTaken: number)
 --   TutorialSkip         client -> server  ()
 --   TutorialScare        server -> client  ()
+--   SonarPing            server -> client  (hits: { Types.SonarHit })
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -53,6 +54,7 @@ local NAMES = {
 	"TutorialState",
 	"TutorialSkip",
 	"TutorialScare",
+	"SonarPing",
 }
 local FOLDER_NAME = "Remotes"
 

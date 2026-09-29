@@ -102,7 +102,11 @@ function UpgradeController.start()
 			local level = state.gear[key]
 			local current = track.values[level]
 			local cost = Gear.nextCost(key, level)
-			if cost then
+			if cost and level == 0 then
+				row.info.Text = `Not owned → {track.values[1]} {track.unit}`
+				row.buy.Text = `{cost}`
+				row.buy.BackgroundColor3 = if state.coins >= cost then AFFORDABLE_COLOR else DISABLED_COLOR
+			elseif cost then
 				row.info.Text = `Lv {level} · {current} → {track.values[level + 1]} {track.unit}`
 				row.buy.Text = `{cost}`
 				row.buy.BackgroundColor3 = if state.coins >= cost then AFFORDABLE_COLOR else DISABLED_COLOR

@@ -66,9 +66,9 @@ local Gear = {}
 Gear.Tracks = table.freeze(tracks)
 Gear.MaxLevel = 5
 
--- Tracks sold at the upgrade station, in display order. Sonar and suit join once they
--- do something in game.
-local shop: { string } = { "tank", "fins", "bag", "lamp" }
+-- Tracks sold at the upgrade station, in display order. The suit joins once its effect is
+-- decided (doc/06 §4).
+local shop: { string } = { "tank", "fins", "bag", "lamp", "sonar" }
 Gear.Shop = table.freeze(shop)
 
 function Gear.valueAt(track: string, level: number): number?

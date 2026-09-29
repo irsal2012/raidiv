@@ -147,6 +147,21 @@ function RelicService.removeOwnedBy(ownerUserId: number)
 	end
 end
 
+-- World relics within `radius` of `position` that `userId` could take, for sonar.
+function RelicService.near(position: Vector3, radius: number, userId: number): { Types.SonarHit }
+	local hits: { Types.SonarHit } = {}
+	for _, entry in worldRelics do
+		local owned = entry.owner == nil or entry.owner == userId
+		if owned and (entry.part.Position - position).Magnitude <= radius then
+			table.insert(
+				hits,
+				{ position = entry.part.Position, rarity = Relics.Defs[entry.relic.relicKey].rarity :: string }
+			)
+		end
+	end
+	return hits
+end
+
 -- Display name of a world relic within `radius` of `position`, for pings.
 function RelicService.nameNear(position: Vector3, radius: number): string?
 	for _, entry in worldRelics do
