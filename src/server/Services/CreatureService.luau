@@ -339,6 +339,10 @@ local function think(creature: Creature)
 		thinkDrifter(creature)
 	end
 	creature.light.Color = STATE_COLORS[creature.state]
+	-- Replicated so clients can play state cues (AudioController).
+	if creature.part:GetAttribute("State") ~= creature.state then
+		creature.part:SetAttribute("State", creature.state)
+	end
 end
 
 local function move(creature: Creature, dt: number)
