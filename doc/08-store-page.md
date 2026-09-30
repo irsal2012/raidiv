@@ -1,6 +1,6 @@
 # 08: Store Page Copy
 
-Ready to paste into Creator Hub → Deep Salvage → Configure → Basic Info. Follows doc/05 §3: hook first, then what's new, then how to play. Keep it accurate: don't promise content that isn't in the game yet.
+Ready to paste into Studio → File → Experience Settings → Basic Info → Description (paste the text between the ``` lines, max 1,000 characters). Follows doc/05 §3: hook first, then what's new, then how to play. Keep it accurate: don't promise content that isn't in the game yet.
 
 ## Title
 
@@ -27,7 +27,7 @@ HOW TO PLAY
 • Sell at the gold counter, upgrade at the blue locker, dive deeper
 
 CONTROLS
-Shift: sprint · F: lamp · G: ping · X: drop relic · H: hide UI for clips
+Space / C: swim up / down · Shift: sprint · F: lamp · G: ping · X: drop relic · H: hide UI for clips
 (Mobile: on-screen buttons)
 ```
 
@@ -43,6 +43,8 @@ Put the latest update above the "HOW TO PLAY" block, and keep only the last one 
 ```
 
 ## Icon and thumbnail briefs (for the artist)
+
+Upload both on the start place: Creator Hub → Deep Salvage → Configure → Places → the starred place → **Icon** / **Thumbnails** (icon 512×512, thumbnails 1920×1080 under 3 MB). Current icon drafts are in `assets/marketing/`, drawn by `tools/make_icons.py`.
 
 - **Icon:** one face, either the Warden looming out of the dark or a diver's helmet lit by a lamp. High contrast, readable at 50 px. Make 2–3 variants for testing (doc/05 §3).
 - **Thumbnails (3–5):** action moments. A diver escaping with a glowing Legendary as the Warden closes in; a squad reviving a downed friend; a base full of rare relics; a Lurker lunging from a vent. Keep text off the image, or down to two words.
