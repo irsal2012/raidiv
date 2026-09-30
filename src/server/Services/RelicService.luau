@@ -14,6 +14,7 @@ local Types = require(Shared.Types)
 local Relics = require(Shared.Config.Relics)
 local Loot = require(Shared.Logic.Loot)
 local Remotes = require(Shared.Net.Remotes)
+local RelicArt = require(script.Parent.Parent.Util.RelicArt)
 
 -- Prompt range is 10; the extra covers latency.
 local PICKUP_RANGE = 14
@@ -92,6 +93,11 @@ local function spawnWorldRelic(relic: Types.RelicInstance, position: Vector3, sl
 	part.Color = RARITY_COLORS[def.rarity]
 	part.Material = if relic.mutation then Enum.Material.Neon else Enum.Material.SmoothPlastic
 	part.Position = position
+	-- The part stays as the pickup's anchor (prompt, glow, sonar position); the model is the look.
+	part.Transparency = 1
+	local art = RelicArt.build(relic.relicKey, relic.mutation, part.Size.X, true)
+	art:PivotTo(part.CFrame)
+	art.Parent = part
 
 	local glow = Instance.new("PointLight")
 	glow.Color = part.Color

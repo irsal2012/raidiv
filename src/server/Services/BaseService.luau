@@ -15,6 +15,7 @@ local Types = require(Shared.Types)
 local BaseConfig = require(Shared.Config.Base)
 local Monetization = require(Shared.Config.Monetization)
 local Relics = require(Shared.Config.Relics)
+local RelicArt = require(script.Parent.Parent.Util.RelicArt)
 local Remotes = require(Shared.Net.Remotes)
 local RateLimiter = require(script.Parent.Parent.Util.RateLimiter)
 
@@ -80,6 +81,10 @@ local function renderSlot(plot: Plot, slot: string, relic: Types.RelicInstance?)
 	display.CFrame = CFrame.new(pedestal.Position + Vector3.new(0, pedestal.Size.Y / 2 + display.Size.Y / 2 + 0.2, 0))
 	display.Color = RARITY_COLORS[def.rarity]
 	display.Material = if relic.mutation then Enum.Material.Neon else Enum.Material.SmoothPlastic
+	display.Transparency = 1 -- anchors the label; the model is the look
+	local art = RelicArt.build(relic.relicKey, relic.mutation, display.Size.X, false)
+	art:PivotTo(display.CFrame)
+	art.Parent = display
 
 	local billboard = Instance.new("BillboardGui")
 	billboard.Size = UDim2.fromOffset(140, 30)

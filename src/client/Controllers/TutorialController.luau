@@ -42,7 +42,8 @@ local function targetsFor(step: string): ({ Instance }, { GuiObject })
 		local relics = Workspace:FindFirstChild("Relics")
 		for _, part in if relics then relics:GetChildren() else {} do
 			if part:GetAttribute("TutorialFor") == localPlayer.UserId then
-				table.insert(world, part)
+				-- Outline the relic's model; the part itself is an invisible anchor.
+				table.insert(world, part:FindFirstChild("Art") or part)
 			end
 		end
 	elseif step == "escape" then
