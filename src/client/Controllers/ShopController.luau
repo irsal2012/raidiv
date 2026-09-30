@@ -63,7 +63,7 @@ function ShopController.start()
 	gui.ResetOnSpawn = false
 
 	local openButton =
-		textButton(gui, "SHOP", Color3.fromRGB(170, 120, 20), UDim2.fromOffset(240, 80), UDim2.fromOffset(100, 40))
+		textButton(gui, "SHOP", Color3.fromRGB(170, 120, 20), UDim2.new(0, 16, 0.5, 30), UDim2.fromOffset(110, 40))
 	openButton.Name = "ShopButton"
 	openButton.Visible = false
 

@@ -74,11 +74,13 @@ function SquadController.start()
 	gui.ResetOnSpawn = false
 
 	-- Open button, left edge below the Roblox menu buttons.
-	local openButton = button(gui, "SQUAD", BLUE, UDim2.fromOffset(16, 80), UDim2.fromOffset(110, 40))
+	-- Left-middle column (SQUAD, BOOK, SHOP): clear of Roblox chat at the top left and the
+	-- thumbstick at the bottom left (doc/07 §5).
+	local openButton = button(gui, "SQUAD", BLUE, UDim2.new(0, 16, 0.5, -70), UDim2.fromOffset(110, 40))
 	openButton.Name = "SquadButton"
 
 	-- Member list under it.
-	local memberList = label(gui, "", UDim2.fromOffset(16, 128), UDim2.fromOffset(200, 20))
+	local memberList = label(gui, "", UDim2.new(0, 16, 0.5, 80), UDim2.fromOffset(200, 20))
 	memberList.TextScaled = false
 	memberList.TextSize = 16
 	memberList.TextYAlignment = Enum.TextYAlignment.Top

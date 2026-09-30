@@ -66,6 +66,6 @@ Room kinds today are `plain`, `pillars` and `crates` (`Config/Zone.luau` weights
 - **Mobile first.** Layouts are authored at 720 px tall and scaled by `UIScaleController` (0.7×–1.15×). Check every screen at 360 px tall (landscape phone).
 - Touch targets at least 40 px at 1× (28 px after the minimum scale).
 - Panels no larger than about 540 × 460 at 1×, so they fit a phone after scaling.
-- Top-left holds the SQUAD / BOOK / SHOP buttons; the top center holds oxygen, bag and the tutorial banner; the bottom right is Roblox's touch controls and our action buttons (Sprint, Lamp, Ping, Drop). Keep new UI out of those zones.
+- Roblox chat owns the top left. The SQUAD / BOOK / SHOP buttons stack at the left middle, with the squad list under them; the top center holds oxygen, bag and the tutorial banner; the bottom right is Roblox's touch controls and our action buttons (Sprint, Lamp, Ping, Drop). Keep new UI out of those zones.
 - Fonts: Gotham Black for buttons and headings, Gotham Bold for labels, Gotham for secondary text.
 - New screens must be added to `OUR_GUIS` in `UIScaleController`, or they won't scale.

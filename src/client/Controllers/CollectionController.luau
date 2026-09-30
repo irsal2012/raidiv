@@ -65,8 +65,8 @@ function CollectionController.start()
 	openButton.TextScaled = true
 	openButton.TextColor3 = Color3.new(1, 1, 1)
 	openButton.BackgroundColor3 = Color3.fromRGB(120, 80, 30)
-	openButton.Position = UDim2.fromOffset(134, 80)
-	openButton.Size = UDim2.fromOffset(100, 40)
+	openButton.Position = UDim2.new(0, 16, 0.5, -20) -- under SQUAD
+	openButton.Size = UDim2.fromOffset(110, 40)
 	corner(openButton)
 	openButton.Parent = gui
 
