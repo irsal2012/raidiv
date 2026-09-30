@@ -31,6 +31,7 @@
 --   ShopBuyCosmetic      client -> server  (id: string)
 --   ShopEquip            client -> server  (id: string)
 --   DevGrant             client -> server  ()   Studio-only test Coins/Pearls
+--   DevWarden            client -> server  ()   Studio-only: summon the Warden in your room
 --   InviteSent           client -> server  (count: number)   analytics only
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -66,6 +67,7 @@ local NAMES = {
 	"ShopBuyCosmetic",
 	"ShopEquip",
 	"DevGrant",
+	"DevWarden",
 	"InviteSent",
 }
 local FOLDER_NAME = "Remotes"

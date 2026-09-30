@@ -1,5 +1,5 @@
 --!strict
--- Studio-only test shortcut: P grants Coins and Pearls (see server DevService, which enforces
+-- Studio-only test shortcuts: P grants Coins and Pearls, K summons the Warden in your room (see server DevService, which enforces
 -- Studio-only on its side too). Does nothing in the published game.
 
 local ContextActionService = game:GetService("ContextActionService")
@@ -21,6 +21,14 @@ function DevController.start()
 		end
 		return Enum.ContextActionResult.Pass
 	end, false, Enum.KeyCode.P)
+
+	local summon = Remotes.get("DevWarden")
+	ContextActionService:BindAction("DevWarden", function(_, inputState: Enum.UserInputState)
+		if inputState == Enum.UserInputState.Begin then
+			summon:FireServer()
+		end
+		return Enum.ContextActionResult.Pass
+	end, false, Enum.KeyCode.K)
 end
 
 return DevController

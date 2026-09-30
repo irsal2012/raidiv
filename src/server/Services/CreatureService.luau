@@ -442,6 +442,13 @@ local function wardenSpawnLoop()
 	end
 end
 
+-- Studio test hook (DevService): a Warden in `room` right now, if none is out.
+function CreatureService.summonWarden(room: string)
+	if not hasWarden() then
+		spawnCreature("Warden", room, greybox.roomCenter(room), 10, Color3.fromRGB(60, 10, 10), "Hunt")
+	end
+end
+
 function CreatureService.isNear(position: Vector3, radius: number): boolean
 	for _, creature in creatures do
 		-- A hidden Lurker stays a surprise: pings don't reveal it.

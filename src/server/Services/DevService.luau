@@ -35,7 +35,16 @@ function DevService.start()
 		services.MonetizationService.sendShopState(player)
 		Remotes.get("Notify"):FireClient(player, `[Studio] +{GRANT_COINS} Coins, +{GRANT_PEARLS} Pearls`)
 	end)
-	print("[Dev] Studio shortcuts on: press P for Coins and Pearls")
+	Remotes.get("DevWarden").OnServerEvent:Connect(function(player)
+		local character = player.Character
+		local root = character and character:FindFirstChild("HumanoidRootPart") :: BasePart?
+		local room = root and services.GreyboxService.roomAt(root.Position)
+		if not RunService:IsStudio() or not allowGrant(player) or not room then
+			return
+		end
+		services.CreatureService.summonWarden(room)
+	end)
+	print("[Dev] Studio shortcuts on: P for Coins and Pearls, K (while diving) summons the Warden")
 end
 
 return DevService

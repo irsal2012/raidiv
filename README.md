@@ -39,6 +39,7 @@ Press **Play**. For co-op, use **Test → Clients and Servers** with 2–4 playe
 | Drop heaviest relic | X | B | Drop button |
 | Hide UI (clip mode) | H | | |
 | **Studio only:** +5000 Coins, +500 Pearls | P | | |
+| **Studio only:** summon the Warden in your room (while diving) | K | | |
 
 Climb the yellow ladder out of the shaft to extract. Sell at the gold counter, upgrade at the blue locker, and use the SQUAD, BOOK and SHOP buttons at the top left. To replay the new-player tutorial in Studio, add a boolean attribute `ForceTutorial` to Workspace. To reproduce a zone layout, add a number attribute `ZoneSeed`.
 
