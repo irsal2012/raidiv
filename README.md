@@ -50,6 +50,7 @@ Climb the yellow ladder out of the shaft to extract. Sell at the gold counter, u
 | `selene src` | Lint |
 | `stylua src tests` | Format (`--check` to verify only) |
 | `rojo sourcemap default.project.json -o sourcemap.json` | Sourcemap for luau-lsp in VS Code |
+| `python tools/make_sounds.py` | Regenerate the game sounds into `assets/audio/` (needs numpy, scipy, ffmpeg); upload them and paste the ids into `Config/Audio.luau` |
 
 CI (`.github/workflows/ci.yml`) runs the format check, lint, tests and a strict `luau-lsp analyze` on every push and pull request.
 
