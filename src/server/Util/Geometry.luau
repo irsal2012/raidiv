@@ -23,6 +23,7 @@ function Geometry.block(parent: Instance, cframe: CFrame, size: Vector3): Part
 end
 
 -- Flat panel: local X = width, local Y = height, local Z = thickness. Optional centered hole.
+-- Returns the parts, so callers can restyle them.
 function Geometry.panel(
 	parent: Instance,
 	cframe: CFrame,
@@ -30,20 +31,21 @@ function Geometry.panel(
 	height: number,
 	holeWidth: number,
 	holeHeight: number
-)
+): { Part }
 	local wall = Geometry.WALL
 	if holeWidth <= 0 then
-		Geometry.block(parent, cframe, Vector3.new(width, height, wall))
-		return
+		return { Geometry.block(parent, cframe, Vector3.new(width, height, wall)) }
 	end
 	local sideWidth = (width - holeWidth) / 2
 	local capHeight = (height - holeHeight) / 2
 	local sideX = (holeWidth + sideWidth) / 2
 	local capY = (holeHeight + capHeight) / 2
-	Geometry.block(parent, cframe * CFrame.new(-sideX, 0, 0), Vector3.new(sideWidth, height, wall))
-	Geometry.block(parent, cframe * CFrame.new(sideX, 0, 0), Vector3.new(sideWidth, height, wall))
-	Geometry.block(parent, cframe * CFrame.new(0, capY, 0), Vector3.new(holeWidth, capHeight, wall))
-	Geometry.block(parent, cframe * CFrame.new(0, -capY, 0), Vector3.new(holeWidth, capHeight, wall))
+	return {
+		Geometry.block(parent, cframe * CFrame.new(-sideX, 0, 0), Vector3.new(sideWidth, height, wall)),
+		Geometry.block(parent, cframe * CFrame.new(sideX, 0, 0), Vector3.new(sideWidth, height, wall)),
+		Geometry.block(parent, cframe * CFrame.new(0, capY, 0), Vector3.new(holeWidth, capHeight, wall)),
+		Geometry.block(parent, cframe * CFrame.new(0, -capY, 0), Vector3.new(holeWidth, capHeight, wall)),
+	}
 end
 
 -- Four walls around a vertical square shaft of inner width `size`, from bottomY to topY.

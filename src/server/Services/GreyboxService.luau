@@ -21,6 +21,7 @@ local Loot = require(Shared.Logic.Loot)
 local ZoneLayout = require(Shared.Logic.ZoneLayout)
 local Geometry = require(script.Parent.Parent.Util.Geometry)
 local RoomDressing = require(script.Parent.Parent.Util.RoomDressing)
+local SurfaceDressing = require(script.Parent.Parent.Util.SurfaceDressing)
 
 local ROOM_SPACING = 50 -- 48 interior + 2 wall
 local ROOM_HALF = 24 -- interior half-width
@@ -264,7 +265,7 @@ local function buildSurface(parent: Instance)
 	ladder.Parent = parent
 
 	-- Ground with a hole over the shaft. Top face at SurfaceY.
-	panel(parent, CFrame.new(0, GreyboxService.SurfaceY - WALL / 2, 0) * FLAT, 400, 400, SHAFT, SHAFT)
+	local ground = panel(parent, CFrame.new(0, GreyboxService.SurfaceY - WALL / 2, 0) * FLAT, 400, 400, SHAFT, SHAFT)
 
 	local boat = block(parent, CFrame.new(0, 1, -20), Vector3.new(14, 2, 10))
 	boat.Name = "DiveBoat"
@@ -307,6 +308,17 @@ local function buildSurface(parent: Instance)
 	floatingLabel(parent, Vector3.new(-24, 7, -20), "UPGRADES", Color3.fromRGB(110, 170, 255))
 	floatingLabel(parent, Vector3.new(0, 7, 0), "DIVE HERE", Color3.fromRGB(80, 220, 200))
 	floatingLabel(parent, Vector3.new(0, 7, 45), "PLAYER BASES", Color3.fromRGB(230, 230, 230))
+
+	SurfaceDressing.dress(parent, {
+		ground = ground,
+		shaftSize = SHAFT,
+		boat = boat,
+		counter = counter,
+		locker = locker,
+		quayHalf = 200,
+		cove = Vector3.new(0, 0, -300), -- TutorialService's cove
+		coveHalf = 40,
+	})
 end
 
 -- Picks the seed, generates the layout, room kinds and relic spawns. Deterministic per seed.
