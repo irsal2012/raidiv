@@ -20,6 +20,7 @@ local ZoneConfig = require(Shared.Config.Zone)
 local Loot = require(Shared.Logic.Loot)
 local ZoneLayout = require(Shared.Logic.ZoneLayout)
 local Geometry = require(script.Parent.Parent.Util.Geometry)
+local RoomDressing = require(script.Parent.Parent.Util.RoomDressing)
 
 local ROOM_SPACING = 50 -- 48 interior + 2 wall
 local ROOM_HALF = 24 -- interior half-width
@@ -158,9 +159,13 @@ local function buildRoom(parent: Instance, key: string)
 	local shaftHole = if key == layout.start then SHAFT else 0
 	panel(model, CFrame.new(center + Vector3.yAxis * verticalOffset) * FLAT, outer, outer, shaftHole, shaftHole)
 
+	local openDirections = {}
 	for _, dir in { Vector3.xAxis, -Vector3.xAxis, Vector3.zAxis, -Vector3.zAxis } do
 		local neighbor = ZoneLayout.key(room.x + math.round(dir.X), room.z + math.round(dir.Z))
 		local door = if table.find(layout.neighbors[key], neighbor) then DOOR else 0
+		if door > 0 then
+			table.insert(openDirections, dir)
+		end
 		local wallCenter = center + dir * (ROOM_HALF + WALL / 2)
 		panel(model, CFrame.lookAt(wallCenter, wallCenter + dir), outer, ROOM_HEIGHT + WALL * 2, door, door)
 	end
@@ -179,6 +184,27 @@ local function buildRoom(parent: Instance, key: string)
 			vent.Color = Color3.fromRGB(35, 38, 40)
 		end
 	end
+
+	local spawns, vents = {}, {}
+	for _, position in relicSpawns do
+		if GreyboxService.roomAt(position) == key then
+			table.insert(spawns, position)
+		end
+	end
+	for _, spot in lurkerSpots do
+		if spot.room == key then
+			table.insert(vents, spot.position)
+		end
+	end
+	RoomDressing.dress(model, {
+		center = center,
+		halfWidth = ROOM_HALF,
+		height = ROOM_HEIGHT,
+		door = DOOR,
+		openDirections = openDirections,
+		spawns = spawns,
+		vents = vents,
+	}, Random.new(GreyboxService.Seed * 97 + (table.find(layout.order, key) or 0)))
 
 	-- Flood the room including its walls, so water runs continuously through doorways.
 	Workspace.Terrain:FillBlock(
