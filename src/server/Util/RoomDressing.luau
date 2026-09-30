@@ -101,7 +101,7 @@ end
 local function dressWalls(model: Model, room: Room, random: Random)
 	local c, half, floorY = room.center, room.halfWidth, room.center.Y - room.height / 2
 	for _, dir in { Vector3.xAxis, -Vector3.xAxis, Vector3.zAxis, -Vector3.zAxis } do
-		local side = Vector3.yAxis:Cross(dir) -- along the wall
+		local side = dir:Cross(Vector3.yAxis) -- along the wall
 		local face = c + dir * half -- inner face center (at room height)
 		local facing = CFrame.lookAt(Vector3.zero, -dir) -- local Z points out of the wall
 
