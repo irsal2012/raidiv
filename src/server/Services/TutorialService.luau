@@ -95,11 +95,14 @@ local function buildCove()
 	boat.Material = Enum.Material.WoodPlanks
 	boat.Color = Color3.fromRGB(120, 85, 55)
 
-	-- Water through shaft and room.
+	-- Water through shaft and room. The shaft's water must stop exactly at ground level
+	-- (COVE.Y); any higher and its surface pokes up out of the hole. Its bottom overlaps the
+	-- room's water by a wall's thickness so the two join.
 	local terrain = Workspace.Terrain
+	local shaftWaterBottom = COVE_ROOM_TOP - wall
 	terrain:FillBlock(
-		CFrame.new(COVE.X, (COVE_ROOM_TOP + COVE.Y) / 2, COVE.Z),
-		Vector3.new(COVE_SHAFT, COVE.Y - COVE_ROOM_TOP + wall, COVE_SHAFT),
+		CFrame.new(COVE.X, (shaftWaterBottom + COVE.Y) / 2, COVE.Z),
+		Vector3.new(COVE_SHAFT, COVE.Y - shaftWaterBottom, COVE_SHAFT),
 		Enum.Material.Water
 	)
 	terrain:FillBlock(
