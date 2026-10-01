@@ -24,6 +24,7 @@ local RARITY_COLORS = Palette.Rarity
 type Plot = {
 	index: number,
 	center: Vector3,
+	frame: CFrame, -- at the center, looking toward the plaza (the sign's side)
 	owner: Player?,
 	model: Model?,
 	pedestals: { [string]: BasePart },
@@ -147,7 +148,7 @@ local function buildPlot(plot: Plot, owner: Player, profile: Types.Profile)
 	floor.Name = "Floor"
 	floor.Anchored = true
 	floor.Size = Vector3.new(BaseConfig.PlotSize, 1, BaseConfig.PlotSize)
-	floor.CFrame = CFrame.new(plot.center + Vector3.new(0, 0.5, 0))
+	floor.CFrame = plot.frame * CFrame.new(0, 0.5, 0)
 	floor.Material = Enum.Material.WoodPlanks
 	floor.Color = Color3.fromRGB(150, 120, 85)
 	floor.Parent = model
@@ -157,7 +158,7 @@ local function buildPlot(plot: Plot, owner: Player, profile: Types.Profile)
 	sign.Name = "Sign"
 	sign.Anchored = true
 	sign.Size = Vector3.new(14, 3, 0.5)
-	sign.CFrame = CFrame.new(plot.center + Vector3.new(0, 5, -BaseConfig.PlotSize / 2 + 1))
+	sign.CFrame = plot.frame * CFrame.new(0, 5, -BaseConfig.PlotSize / 2 + 1)
 	sign.Color = Color3.fromRGB(40, 50, 60)
 	sign.Parent = model
 	-- Two posts from the floor up to the sign.
@@ -172,7 +173,7 @@ local function buildPlot(plot: Plot, owner: Player, profile: Types.Profile)
 		post.Parent = model
 	end
 	local signGui = Instance.new("SurfaceGui")
-	signGui.Face = Enum.NormalId.Front -- faces -Z, toward the dock
+	signGui.Face = Enum.NormalId.Front -- faces the plaza
 	signGui.PixelsPerStud = 40
 	signGui.Parent = sign
 	local signText = Instance.new("TextLabel")
@@ -194,8 +195,9 @@ local function buildPlot(plot: Plot, owner: Player, profile: Types.Profile)
 		pedestal.Shape = Enum.PartType.Cylinder
 		pedestal.Size = Vector3.new(3, 3, 3)
 		-- Cylinders run along X; stand it up.
-		pedestal.CFrame = CFrame.new(plot.center + pedestalOffset(i, slots) + Vector3.new(0, 2.5, 0))
-			* CFrame.Angles(0, 0, math.rad(90))
+		pedestal.CFrame = CFrame.new(
+			(plot.frame * CFrame.new(pedestalOffset(i, slots))).Position + Vector3.new(0, 2.5, 0)
+		) * CFrame.Angles(0, 0, math.rad(90))
 		pedestal.Color = Color3.fromRGB(200, 200, 205)
 		pedestal.Material = Enum.Material.Marble
 		pedestal.Parent = model
@@ -262,15 +264,20 @@ end
 
 function BaseService.init(allServices: any)
 	services = allServices
-	for row = 0, BaseConfig.Rows - 1 do
-		for column = 0, BaseConfig.PlotsPerRow - 1 do
-			local x = (column - (BaseConfig.PlotsPerRow - 1) / 2) * BaseConfig.PlotSpacing
-			local z = BaseConfig.FirstRowZ + row * BaseConfig.RowSpacing
-			table.insert(plots, {
-				index = #plots + 1,
-				center = Vector3.new(x, services.GreyboxService.SurfaceY, z),
-				pedestals = {},
-			})
+	-- Inner columns first, so the first players get the plots nearest the plaza.
+	for column = 0, BaseConfig.Columns - 1 do
+		for row = 0, BaseConfig.Rows - 1 do
+			for _, side in { -1, 1 } do
+				local x = side * (BaseConfig.InnerX + column * BaseConfig.PlotSpacing)
+				local z = BaseConfig.FirstZ + row * BaseConfig.PlotSpacing
+				local center = Vector3.new(x, services.GreyboxService.SurfaceY, z)
+				table.insert(plots, {
+					index = #plots + 1,
+					center = center,
+					frame = CFrame.lookAt(center, center - Vector3.new(side, 0, 0)),
+					pedestals = {},
+				})
+			end
 		end
 	end
 	-- Created here, not in start(): a profile may finish loading before this service starts.

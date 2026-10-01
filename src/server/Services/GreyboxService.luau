@@ -57,6 +57,9 @@ local GreyboxService = {
 	ZoneFolder = nil :: Folder?,
 	SellPrompt = nil :: ProximityPrompt?,
 	UpgradePrompt = nil :: ProximityPrompt?,
+	-- Plaza boards (SurfaceDressing); LeaderboardService and CurrentsService write on them.
+	LeaderboardBoard = nil :: BasePart?,
+	CurrentBoard = nil :: BasePart?,
 }
 
 local layout: ZoneLayout.Layout
@@ -307,9 +310,12 @@ local function buildSurface(parent: Instance)
 	floatingLabel(parent, Vector3.new(24, 7, -20), "SELL RELICS", Color3.fromRGB(255, 205, 60))
 	floatingLabel(parent, Vector3.new(-24, 7, -20), "UPGRADES", Color3.fromRGB(110, 170, 255))
 	floatingLabel(parent, Vector3.new(0, 7, 0), "DIVE HERE", Color3.fromRGB(80, 220, 200))
-	floatingLabel(parent, Vector3.new(0, 7, 45), "PLAYER BASES", Color3.fromRGB(230, 230, 230))
+	-- Over each block of base plots (Config/Base.luau), visible from the plaza.
+	for _, side in { -1, 1 } do
+		floatingLabel(parent, Vector3.new(side * 70, 9, 0), "PLAYER BASES", Color3.fromRGB(230, 230, 230))
+	end
 
-	SurfaceDressing.dress(parent, {
+	local boards = SurfaceDressing.dress(parent, {
 		ground = ground,
 		shaftSize = SHAFT,
 		boat = boat,
@@ -319,6 +325,8 @@ local function buildSurface(parent: Instance)
 		cove = Vector3.new(0, 0, -300), -- TutorialService's cove
 		coveHalf = 40,
 	})
+	GreyboxService.LeaderboardBoard = boards.leaderboard
+	GreyboxService.CurrentBoard = boards.current
 end
 
 -- Picks the seed, generates the layout, room kinds and relic spawns. Deterministic per seed.

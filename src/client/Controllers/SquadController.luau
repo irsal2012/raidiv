@@ -80,7 +80,7 @@ function SquadController.start()
 	openButton.Name = "SquadButton"
 
 	-- Member list under it.
-	local memberList = label(gui, "", UDim2.new(0, 16, 0.5, 80), UDim2.fromOffset(200, 20))
+	local memberList = label(gui, "", UDim2.new(0, 16, 0.5, 130), UDim2.fromOffset(200, 20)) -- under the coins
 	memberList.TextScaled = false
 	memberList.TextSize = 16
 	memberList.TextYAlignment = Enum.TextYAlignment.Top

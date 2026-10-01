@@ -37,6 +37,7 @@ local function sellAll(player: Player, counter: BasePart)
 	local count = #profile.inventory
 	table.clear(profile.inventory)
 	services.PlayerDataService.addCoins(player, total)
+	profile.stats.earned += total
 	services.AnalyticsService.economy(player, "Source", total, profile.coins, "SellRelics")
 	services.AnalyticsService.onboardingStep(player, "FirstSale")
 	services.TutorialService.onSold(player)

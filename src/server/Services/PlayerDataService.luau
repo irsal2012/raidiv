@@ -30,7 +30,7 @@ local TEMPLATE: Types.Profile = {
 	collection = {},
 	cosmetics = { owned = {}, equipped = {} },
 	purchases = {},
-	stats = { dives = 0, extractions = 0, deaths = 0 },
+	stats = { dives = 0, extractions = 0, deaths = 0, earned = 0 }, -- Reconcile adds earned to older saves
 	onboarding = {},
 	titles = {},
 	collectionRewards = {},

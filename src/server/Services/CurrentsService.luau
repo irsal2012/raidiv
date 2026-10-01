@@ -54,18 +54,11 @@ function CurrentsService.start()
 	local current = CurrentsService.current()
 	print(`[Currents] {current.name}: {current.description}`)
 
-	-- Sign on a post behind the boat.
-	local zone = services.GreyboxService.ZoneFolder
-	local post = Instance.new("Part")
-	post.Name = "CurrentsSign"
-	post.Anchored = true
-	post.Size = Vector3.new(16, 6, 0.5)
-	post.CFrame = CFrame.new(0, 6, -30)
-	post.Color = Color3.fromRGB(25, 45, 60)
-	post.Parent = zone
+	-- Written on the plaza's current board (SurfaceDressing), facing the spawn.
+	local post = services.GreyboxService.CurrentBoard :: BasePart
 
 	local gui = Instance.new("SurfaceGui")
-	gui.Face = Enum.NormalId.Back -- faces the boat (+Z)
+	gui.Face = Enum.NormalId.Front
 	gui.PixelsPerStud = 40
 	gui.Parent = post
 	local text = Instance.new("TextLabel")

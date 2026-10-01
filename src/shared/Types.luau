@@ -20,7 +20,7 @@ export type Profile = {
 	collection: { [string]: boolean }, -- discovered relicKeys
 	cosmetics: { owned: { [string]: boolean }, equipped: { [string]: string } },
 	purchases: { [string]: boolean }, -- processed receipt IDs
-	stats: { dives: number, extractions: number, deaths: number },
+	stats: { dives: number, extractions: number, deaths: number, earned: number }, -- earned: lifetime Coins from selling (leaderboard)
 	onboarding: { [string]: boolean }, -- onboarding funnel steps already logged
 	titles: { [string]: boolean }, -- earned titles (display comes with cosmetics)
 	collectionRewards: { [string]: boolean }, -- collection milestones already paid

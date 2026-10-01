@@ -6,7 +6,10 @@
 -- the floating labels and base plots) keeps its position and size; this only restyles those
 -- parts and builds around them.
 
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
+
+local HubConfig = require(ReplicatedStorage.Shared.Config.Hub)
 
 local SurfaceDressing = {}
 
@@ -17,7 +20,8 @@ local function look(material: Enum.Material, r: number, g: number, b: number): L
 end
 
 local QUAY = look(Enum.Material.Cobblestone, 140, 134, 122)
-local PATH = look(Enum.Material.Slate, 104, 100, 94)
+local PLAZA = look(Enum.Material.Pavement, 176, 170, 158)
+local BOARD = look(Enum.Material.SmoothPlastic, 22, 36, 46)
 local RIM = look(Enum.Material.Concrete, 170, 164, 150)
 local DECK = look(Enum.Material.WoodPlanks, 150, 110, 70)
 local DARK_WOOD = look(Enum.Material.WoodPlanks, 92, 64, 42)
@@ -154,6 +158,129 @@ local function harbor(holes: { { minX: number, maxX: number, minZ: number, maxZ:
 	end
 end
 
+-- A notice board on two posts along the plaza's north edge, facing the spawn (-Z). Returns
+-- the board face part; callers put a SurfaceGui on its Front.
+local function board(parent: Instance, x: number, width: number, height: number, name: string): Part
+	local bottom = HubConfig.BoardBottom
+	local center = Vector3.new(x, bottom + height / 2, HubConfig.BoardZ)
+	local facing = CFrame.lookAt(center, center - Vector3.zAxis)
+	local face = prop(parent, facing, Vector3.new(width, height, 0.4), BOARD, nil, true)
+	face.Name = name
+	prop(parent, facing * CFrame.new(0, 0, 0.35), Vector3.new(width + 1, height + 1, 0.3), DARK_WOOD, nil, true)
+	prop(parent, facing * CFrame.new(0, height / 2 + 0.6, 0.1), Vector3.new(width + 1.6, 0.4, 1.2), DARK_WOOD)
+	for _, side in { -1, 1 } do
+		local foot = (facing * CFrame.new(side * (width / 2 + 0.3), 0, 0.6)).Position
+		column(parent, Vector3.new(foot.X, 0, foot.Z), 0.6, bottom + height + 0.6, DARK_WOOD, true)
+	end
+	return face
+end
+
+local function surfaceFrame(part: BasePart, face: Enum.NormalId): Frame
+	local gui = Instance.new("SurfaceGui")
+	gui.Face = face
+	gui.PixelsPerStud = 30
+	gui.LightInfluence = 0.2
+	gui.Parent = part
+	local frame = Instance.new("Frame")
+	frame.BackgroundTransparency = 1
+	frame.Size = UDim2.fromScale(1, 1)
+	frame.Parent = gui
+	return frame
+end
+
+local function textLabel(
+	parent: Instance,
+	text: string,
+	position: UDim2,
+	size: UDim2,
+	color: Color3,
+	font: Enum.Font,
+	align: Enum.TextXAlignment?
+): TextLabel
+	local l = Instance.new("TextLabel")
+	l.BackgroundTransparency = 1
+	l.Position = position
+	l.Size = size
+	l.Font = font
+	l.TextScaled = true
+	l.TextColor3 = color
+	l.TextXAlignment = align or Enum.TextXAlignment.Center
+	l.Text = text
+	l.Parent = parent
+	return l
+end
+
+local HOW_TO_PLAY = {
+	"1  Press DIVE, swim down (C sinks)",
+	"2  Hold E on glowing relics",
+	"3  Watch your air!",
+	"4  Climb the yellow ladder to keep loot",
+	"5  Sell at the gold stall, upgrade at the blue shed",
+}
+
+export type Boards = { leaderboard: Part, current: Part }
+
+local function buildBoards(parent: Instance): Boards
+	local how = HubConfig.HowToPlay
+	local howBoard = board(parent, how.x, how.width, how.height, "HowToPlayBoard")
+	local frame = surfaceFrame(howBoard, Enum.NormalId.Front)
+	textLabel(
+		frame,
+		"HOW TO PLAY",
+		UDim2.fromScale(0, 0.04),
+		UDim2.fromScale(1, 0.16),
+		Color3.fromRGB(80, 220, 200),
+		Enum.Font.GothamBlack
+	)
+	for i, line in HOW_TO_PLAY do
+		textLabel(
+			frame,
+			line,
+			UDim2.fromScale(0.05, 0.25 + (i - 1) * 0.145),
+			UDim2.fromScale(0.9, 0.11),
+			Color3.new(1, 1, 1),
+			Enum.Font.GothamBold,
+			Enum.TextXAlignment.Left
+		)
+	end
+
+	local lb, cur = HubConfig.Leaderboard, HubConfig.Current
+	return {
+		leaderboard = board(parent, lb.x, lb.width, lb.height, "LeaderboardBoard"),
+		current = board(parent, cur.x, cur.width, cur.height, "CurrentBoard"),
+	}
+end
+
+-- A post with an arrow board pointing along +X (side 1) or -X (side -1), text on both faces.
+local function signpost(parent: Instance, at: Vector3, side: number, text: string)
+	column(parent, at, 0.5, 6.5, DARK_WOOD, true)
+	local arrowCenter = at + Vector3.new(side * 2.8, 5.4, 0)
+	local arrow = prop(parent, CFrame.new(arrowCenter), Vector3.new(5, 1.4, 0.3), BOARD)
+	-- Arrow tip: two wedges, upper and lower, whose thin edges meet at the point. A wedge's
+	-- thin edge is at its front (-Z), so each looks outward along X; the lower one is flipped.
+	local tipBase = arrowCenter + Vector3.new(side * 3.1, 0, 0)
+	local outward = CFrame.lookAt(tipBase, tipBase + Vector3.new(side, 0, 0))
+	for _, half in { 1, -1 } do
+		prop(
+			parent,
+			outward * CFrame.new(0, half * 0.35, 0) * CFrame.Angles(0, 0, if half == 1 then 0 else math.pi),
+			Vector3.new(0.3, 0.7, 1.2),
+			BOARD,
+			Enum.PartType.Wedge
+		)
+	end
+	for _, face in { Enum.NormalId.Front, Enum.NormalId.Back } do
+		textLabel(
+			surfaceFrame(arrow, face),
+			text,
+			UDim2.fromScale(0, 0),
+			UDim2.fromScale(1, 1),
+			Color3.fromRGB(230, 230, 230),
+			Enum.Font.GothamBlack
+		)
+	end
+end
+
 export type Hub = {
 	ground: { Part },
 	shaftSize: number,
@@ -165,7 +292,7 @@ export type Hub = {
 	coveHalf: number,
 }
 
-function SurfaceDressing.dress(parent: Instance, hub: Hub)
+function SurfaceDressing.dress(parent: Instance, hub: Hub): Boards
 	local folder = Instance.new("Folder")
 	folder.Name = "SurfaceDressing"
 	folder.Parent = parent
@@ -174,28 +301,49 @@ function SurfaceDressing.dress(parent: Instance, hub: Hub)
 		style(part, QUAY)
 	end
 
-	-- Stone rim around the shaft.
+	-- Stone rim around the shaft. The X sides run the full length and the Z sides fit between
+	-- them, so the corners don't overlap (overlapping coplanar faces flicker).
 	local half = hub.shaftSize / 2 + 1
 	for _, dir in { Vector3.xAxis, -Vector3.xAxis, Vector3.zAxis, -Vector3.zAxis } do
+		local length = if dir.X ~= 0 then hub.shaftSize + 4 else hub.shaftSize
 		prop(
 			folder,
 			CFrame.lookAt(dir * half + Vector3.yAxis * 0.6, dir * half + Vector3.yAxis * 0.6 + dir),
-			Vector3.new(hub.shaftSize + 4, 1.2, 2),
+			Vector3.new(length, 1.2, 2),
 			RIM,
 			nil,
 			true
 		)
 	end
 
-	-- Path from the shaft to the player bases.
-	prop(folder, CFrame.new(0, 0.05, 32), Vector3.new(8, 0.1, 40), PATH)
+	-- Paved plaza around the shaft, in four slabs that leave the shaft and its rim open.
+	local px, minZ, maxZ, inner = HubConfig.PlazaHalfX, HubConfig.PlazaMinZ, HubConfig.PlazaMaxZ, half + 1
+	for _, slab in
+		{
+			{ -px, px, minZ, -inner },
+			{ -px, px, inner, maxZ },
+			{ -px, -inner, -inner, inner },
+			{ inner, px, -inner, inner },
+		}
+	do
+		local x0, x1, z0, z1 = slab[1], slab[2], slab[3], slab[4]
+		prop(folder, CFrame.new((x0 + x1) / 2, 0.05, (z0 + z1) / 2), Vector3.new(x1 - x0, 0.1, z1 - z0), PLAZA)
+	end
+
+	local boards = buildBoards(folder)
+	-- Signposts at the plaza's east and west edges, pointing out to the base plots.
+	for _, side in { -1, 1 } do
+		signpost(folder, Vector3.new(side * (px - 2), 0, 2), side, "PLAYER BASES")
+	end
 
 	-- Dive platform: the boat block becomes a deck with a hull band, rails, flag mast and gear.
 	local boat = hub.boat
 	style(boat, DECK)
 	local bs, bc = boat.Size, boat.CFrame
 	prop(folder, bc * CFrame.new(0, -0.3, 0), Vector3.new(bs.X + 0.4, bs.Y * 0.7, bs.Z + 0.4), HULL)
-	prop(folder, bc * CFrame.new(0, bs.Y / 2 - 0.15, 0), Vector3.new(bs.X + 0.5, 0.3, bs.Z + 0.5), WHITE)
+	-- White trim stripe just under the deck surface. Its top must not be level with the deck,
+	-- or the two faces z-fight (flicker) across the whole deck.
+	prop(folder, bc * CFrame.new(0, bs.Y / 2 - 0.25, 0), Vector3.new(bs.X + 0.5, 0.3, bs.Z + 0.5), WHITE)
 	local deckY = bs.Y / 2
 	for _, x in { -bs.X / 2 + 0.2, bs.X / 2 - 0.2 } do
 		for z = -bs.Z / 2 + 0.5, bs.Z / 2 - 0.5, 3 do
@@ -304,8 +452,10 @@ function SurfaceDressing.dress(parent: Instance, hub: Hub)
 			Vector3.new(13, 0, -9),
 			Vector3.new(-13, 0, 16),
 			Vector3.new(13, 0, 16),
-			Vector3.new(-6, 0, 40),
-			Vector3.new(6, 0, 40),
+			Vector3.new(-px + 2, 0, minZ + 2),
+			Vector3.new(px - 2, 0, minZ + 2),
+			Vector3.new(-px + 2, 0, maxZ - 2),
+			Vector3.new(px - 2, 0, maxZ - 2),
 		}
 	do
 		lampPost(folder, at)
@@ -321,6 +471,7 @@ function SurfaceDressing.dress(parent: Instance, hub: Hub)
 		{ minX = -q, maxX = q, minZ = -q, maxZ = q },
 		{ minX = c.X - h, maxX = c.X + h, minZ = c.Z - h, maxZ = c.Z + h },
 	}, 600)
+	return boards
 end
 
 return SurfaceDressing

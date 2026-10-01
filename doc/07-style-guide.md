@@ -57,7 +57,7 @@ Room kinds today are `plain`, `pillars` and `crates` (`Config/Zone.luau` weights
 | Warden | 10-stud dark-red ball | Big, slow, relentless boss |
 | Relics (30 for launch) | Cubes sized by weight | Models reusing a few bases with material variants (doc/03 Phase 3) |
 | Room modules (20+) | Grey boxes | Ruins, kelp, harbor architecture per §3 |
-| Surface hub | Grey plates, a wooden boat, blocks | Dock, market, base area |
+| Surface hub | Code-built quay (`SurfaceDressing`): paved central plaza around the shaft with the spawn platform, sell stall, gear shed and three boards (How to Play, global leaderboard, today's current) on its north edge; 16 base plots in two blocks of 8 either side, signs facing the plaza (`Config/Hub.luau`, `Config/Base.luau`) | Modelled dock, market and base props |
 | Audio | None | Ambience layers, breathing below 25% air, creature cues, stingers |
 | Icon + 3–5 thumbnails | Roblox defaults | Doc/05 §3: one creature or diver face, high contrast |
 
@@ -66,6 +66,6 @@ Room kinds today are `plain`, `pillars` and `crates` (`Config/Zone.luau` weights
 - **Mobile first.** Layouts are authored at 720 px tall and scaled by `UIScaleController` (0.7×–1.15×). Check every screen at 360 px tall (landscape phone).
 - Touch targets at least 40 px at 1× (28 px after the minimum scale).
 - Panels no larger than about 540 × 460 at 1×, so they fit a phone after scaling.
-- Roblox chat owns the top left. The SQUAD / BOOK / SHOP buttons stack at the left middle, with the squad list under them; the top center holds oxygen, bag and the tutorial banner; the bottom right is Roblox's touch controls and our action buttons (Sprint, Lamp, Ping, Drop). Keep new UI out of those zones.
+- Roblox chat owns the top left. The SQUAD / BOOK / SHOP buttons stack at the left middle, then the coin counter, then the squad list; the top center holds oxygen, bag and the tutorial banner; the bottom right is Roblox's touch controls and our action buttons (Sprint, Lamp, Ping, Drop). Keep new UI out of those zones.
 - Fonts: Gotham Black for buttons and headings, Gotham Bold for labels, Gotham for secondary text.
 - New screens must be added to `OUR_GUIS` in `UIScaleController`, or they won't scale.
