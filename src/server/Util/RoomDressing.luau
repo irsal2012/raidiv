@@ -105,11 +105,12 @@ local function dressWalls(model: Model, room: Room, random: Random)
 		local face = c + dir * half -- inner face center (at room height)
 		local facing = CFrame.lookAt(Vector3.zero, -dir) -- local Z points out of the wall
 
-		-- Moss strip along the foot of the wall.
+		-- Moss strip along the foot of the wall. X walls run corner to corner and Z walls fit
+		-- between them, so strips never overlap at the corners (overlaps flicker).
 		prop(
 			model,
 			CFrame.new(Vector3.new(face.X, floorY + 0.4, face.Z) - dir * 0.4) * facing,
-			Vector3.new(half * 2, 0.8, 0.8),
+			Vector3.new(if dir.X ~= 0 then half * 2 else half * 2 - 1.6, 0.8, 0.8),
 			MOSS
 		)
 
